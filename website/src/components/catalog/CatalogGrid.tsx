@@ -2,9 +2,11 @@ import { useState } from "react"
 import productsData from "@/data/products.json"
 import ProductCard from "./ProductCard"
 import type { Product } from "./ProductCard"
+import { useCartStore } from "@/store/useCartStore"
 
 export default function CatalogGrid() {
   const [activeTab, setActiveTab] = useState<"all" | "classics" | "specials">("all")
+  const { addToCart } = useCartStore()
 
   // Filter products to show only standard/specialty cakes, excluding addons
   const cakes = (productsData as unknown as Product[]).filter(
@@ -26,8 +28,14 @@ export default function CatalogGrid() {
   })
 
   const handleAddToCart = (product: Product, size: string, price: number) => {
-    // Will be wired up to cart store in Phase 3
-    console.log("Adding to cart from CatalogGrid:", product.name, size, price)
+    addToCart({
+      id: `${product.id}-${size}`,
+      productId: product.id,
+      name: product.name,
+      price: price,
+      size: size,
+      image: product.image,
+    })
   }
 
   return (

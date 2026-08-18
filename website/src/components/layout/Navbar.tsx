@@ -1,15 +1,15 @@
 import { Link, useLocation } from "react-router-dom"
 import { ShoppingBag } from "lucide-react"
+import { useCartStore } from "@/store/useCartStore"
 
 export default function Navbar() {
   const location = useLocation()
+  const { cart, toggleDrawer } = useCartStore()
   
-  // Cart items placeholder for Phase 2
-  const cartItemCount = 0
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0)
 
   const handleCartClick = () => {
-    // Will be wired up to Zustand store in Phase 3
-    console.log("Cart clicked")
+    toggleDrawer(true)
   }
 
   const handleStandardCakesClick = (e: React.MouseEvent<HTMLAnchorElement>) => {

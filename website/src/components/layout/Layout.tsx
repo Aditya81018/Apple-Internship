@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom"
 import TopBar from "./TopBar"
 import Navbar from "./Navbar"
 import Footer from "./Footer"
+import CartDrawer from "../cart/CartDrawer"
 
 export default function Layout() {
   return (
@@ -19,6 +20,9 @@ export default function Layout() {
 
       {/* Footer Details */}
       <Footer />
+
+      {/* Global Sliding Cart Drawer */}
+      <CartDrawer />
     </div>
   )
 }
