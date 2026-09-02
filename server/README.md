@@ -1,6 +1,6 @@
 # Raj Confections - PHP Backend Server
 
-A lightweight, zero-dependency RESTful PHP backend server for catalog management, custom cake reference uploads, order storage, and health diagnostics.
+A lightweight RESTful PHP backend server connected to MariaDB / MySQL (`raj-confections-db`) for product catalog management, custom cake reference uploads, order storage, and health diagnostics.
 
 ---
 
@@ -8,15 +8,53 @@ A lightweight, zero-dependency RESTful PHP backend server for catalog management
 
 ```
 server/
+├── config/
+│   └── database.php       # PDO connection manager & environment loader
 ├── public/
 │   └── index.php          # Main REST API controller & routing entry point
 ├── data/
-│   ├── products.json      # Product catalog dataset
-│   └── orders.json        # Persistent order log dataset
+│   ├── products.json      # Product catalog dataset (seed source & fallback)
+│   └── orders.json        # Persistent order log dataset (fallback)
 ├── uploads/               # Custom cake reference images upload store
 │   └── .gitkeep
+├── schema.sql             # SQL schema creation script for MariaDB / MySQL
+├── seed.php               # Seeding script to import products into MariaDB / MySQL
 ├── router.php             # Router script for PHP built-in web server
 └── README.md              # Server documentation and API specifications
+```
+
+---
+
+## 🗄️ Database Setup (`raj-confections-db`)
+
+### Step 1: Create Database & Tables
+Import `schema.sql` into MariaDB or MySQL:
+
+```bash
+mysql -u root -p < server/schema.sql
+```
+
+### Step 2: Configure Environment Variables (Optional)
+By default, the server connects using:
+- `DB_HOST`: `127.0.0.1`
+- `DB_PORT`: `3306`
+- `DB_NAME`: `raj-confections-db`
+- `DB_USER`: `root`
+- `DB_PASS`: `` (empty)
+
+You can customize these by setting environment variables before starting the server:
+```bash
+export DB_HOST=127.0.0.1
+export DB_NAME=raj-confections-db
+export DB_USER=myuser
+export DB_PASS=mypassword
+```
+
+### Step 3: Seed Catalog Data
+Import initial product data from `data/products.json` into MariaDB/MySQL:
+
+```bash
+php server/seed.php
 ```
 
 ---
@@ -41,14 +79,14 @@ The API will now be accessible at `http://localhost:8000`.
 
 ### 1. Health Check
 * **Endpoint**: `GET /api/health`
-* **Description**: Verifies backend server health and environment status.
 * **Sample Response**:
   ```json
   {
     "status": "ok",
     "app": "Raj Confections API",
-    "version": "1.0.0",
-    "timestamp": "2026-09-02 08:48:00 IST",
+    "version": "1.1.0",
+    "database": "connected (MariaDB/MySQL)",
+    "timestamp": "2026-09-02 09:12:00 IST",
     "server": "PHP/8.x"
   }
   ```
@@ -57,7 +95,7 @@ The API will now be accessible at `http://localhost:8000`.
 
 ### 2. Get Products Catalog
 * **Endpoint**: `GET /api/products`
-* **Description**: Fetches standard catalog cakes and birthday add-on products.
+* **Description**: Queries `products` table in MariaDB/MySQL (or JSON fallback).
 * **Sample Response**:
   ```json
   [
@@ -81,6 +119,7 @@ The API will now be accessible at `http://localhost:8000`.
 ### 3. Create Order
 * **Endpoint**: `POST /api/orders`
 * **Headers**: `Content-Type: application/json`
+* **Description**: Inserts order record into `orders` and line items into `order_items` in MariaDB/MySQL.
 * **Sample Request Body**:
   ```json
   {
@@ -116,6 +155,7 @@ The API will now be accessible at `http://localhost:8000`.
     "success": true,
     "message": "Order created successfully",
     "order_id": "RC-20260902-A1B2",
+    "storage": "mariadb",
     "order": { ... }
   }
   ```
@@ -125,45 +165,8 @@ The API will now be accessible at `http://localhost:8000`.
 ### 4. Custom Cake Image Upload
 * **Endpoint**: `POST /api/upload`
 * **Supported Formats**: `multipart/form-data` (`image` field) or Base64 payload in JSON.
-* **Sample Response (201 Created)**:
-  ```json
-  {
-    "success": true,
-    "message": "Image uploaded successfully",
-    "filename": "cake_20260902_084800_a1b2c3.png",
-    "url": "/uploads/cake_20260902_084800_a1b2c3.png"
-  }
-  ```
 
 ---
 
 ### 5. Serve Uploaded Image Assets
 * **Endpoint**: `GET /uploads/{filename}`
-* **Description**: Serves stored reference images with proper `Content-Type` headers (`image/png`, `image/jpeg`, etc.).
-
----
-
-## 🛠️ Testing Endpoints with curl
-
-```bash
-# Health Check
-curl -X GET http://localhost:8000/api/health
-
-# Get Products
-curl -X GET http://localhost:8000/api/products
-
-# Create Test Order
-curl -X POST http://localhost:8000/api/orders \
-  -H "Content-Type: application/json" \
-  -d '{"items":[{"id":"vanilla-cake","name":"Vanilla Cake","quantity":1}],"total_amount":400}'
-```
-
----
-
-## 🌐 Integration with React / Vite Frontend
-
-In your frontend application (e.g., `website/src/config.ts`), configure the API base URL:
-
-```typescript
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-```

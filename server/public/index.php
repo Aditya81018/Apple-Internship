@@ -2,15 +2,17 @@
 /**
  * Raj Confections - PHP Backend Server API Controller
  * 
- * Provides RESTful API endpoints for catalog management, order processing,
- * custom cake reference image upload, and health monitoring.
+ * RESTful API endpoints connected to MariaDB / MySQL (`raj-confections-db`)
+ * with graceful fallback to local JSON database storage.
  */
 
-// Enable error reporting for dev clarity (can be muted in production)
+// Enable error reporting for dev clarity
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
 
-// Allow Cross-Origin Resource Sharing (CORS) for Vite dev server & external clients
+require_once __DIR__ . '/../config/database.php';
+
+// Allow Cross-Origin Resource Sharing (CORS)
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -37,13 +39,15 @@ function sendJsonResponse($data, int $statusCode = 200): void {
 $dataDir = __DIR__ . '/../data';
 $uploadsDir = __DIR__ . '/../uploads';
 
-// Ensure required directories exist
 if (!file_exists($dataDir)) {
     mkdir($dataDir, 0755, true);
 }
 if (!file_exists($uploadsDir)) {
     mkdir($uploadsDir, 0755, true);
 }
+
+// Check database connection
+$pdo = Database::getConnection();
 
 // --------------------------------------------------------------------------
 // Routing Logic
@@ -70,7 +74,8 @@ if ($requestUri === '/api/health' && $requestMethod === 'GET') {
     sendJsonResponse([
         'status' => 'ok',
         'app' => 'Raj Confections API',
-        'version' => '1.0.0',
+        'version' => '1.1.0',
+        'database' => $pdo ? 'connected (MariaDB/MySQL)' : 'fallback (JSON)',
         'timestamp' => date('Y-m-d H:i:s T'),
         'server' => 'PHP/' . phpversion()
     ]);
@@ -78,6 +83,23 @@ if ($requestUri === '/api/health' && $requestMethod === 'GET') {
 
 // 3. GET /api/products
 if ($requestUri === '/api/products' && $requestMethod === 'GET') {
+    if ($pdo) {
+        try {
+            $stmt = $pdo->query("SELECT id, name, category, price, image, sizes, prices FROM products ORDER BY category ASC, name ASC");
+            $products = [];
+            while ($row = $stmt->fetch()) {
+                $row['price'] = (float) $row['price'];
+                $row['sizes'] = json_decode($row['sizes'] ?: '[]', true);
+                $row['prices'] = json_decode($row['prices'] ?: '{}', true);
+                $products[] = $row;
+            }
+            sendJsonResponse($products);
+        } catch (PDOException $e) {
+            error_log("Database Query Error: " . $e->getMessage());
+        }
+    }
+
+    // Fallback to products.json
     $productsFile = $dataDir . '/products.json';
     if (file_exists($productsFile)) {
         $productsData = json_decode(file_get_contents($productsFile), true);
@@ -101,6 +123,78 @@ if ($requestUri === '/api/orders' && $requestMethod === 'POST') {
     $randomHex = strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
     $orderId = "RC-{$datePrefix}-{$randomHex}";
 
+    $items = $orderData['items'] ?? [];
+    $totalAmount = (float) ($orderData['total_amount'] ?? 0);
+    $customer = $orderData['customer'] ?? [];
+    $fulfillment = $orderData['fulfillment'] ?? [];
+    $customization = $orderData['customization'] ?? [];
+
+    $dbSaved = false;
+
+    if ($pdo) {
+        try {
+            $pdo->beginTransaction();
+
+            $stmtOrder = $pdo->prepare("
+                INSERT INTO `orders` (
+                    `order_id`, `status`, `total_amount`,
+                    `customer_name`, `customer_phone`,
+                    `fulfillment_type`, `fulfillment_date`, `fulfillment_time`, `delivery_address`,
+                    `name_on_cake`, `special_notes`, `raw_payload`
+                ) VALUES (
+                    :order_id, 'PENDING_CONFIRMATION', :total_amount,
+                    :customer_name, :customer_phone,
+                    :fulfillment_type, :fulfillment_date, :fulfillment_time, :delivery_address,
+                    :name_on_cake, :special_notes, :raw_payload
+                )
+            ");
+
+            $stmtOrder->execute([
+                ':order_id'         => $orderId,
+                ':total_amount'     => $totalAmount,
+                ':customer_name'    => $customer['name'] ?? null,
+                ':customer_phone'   => $customer['phone'] ?? null,
+                ':fulfillment_type' => $fulfillment['type'] ?? null,
+                ':fulfillment_date' => $fulfillment['date'] ?? null,
+                ':fulfillment_time' => $fulfillment['time'] ?? null,
+                ':delivery_address' => $fulfillment['address'] ?? null,
+                ':name_on_cake'     => $customization['name_on_cake'] ?? null,
+                ':special_notes'    => $customization['special_notes'] ?? null,
+                ':raw_payload'      => json_encode($orderData)
+            ]);
+
+            if (!empty($items) && is_array($items)) {
+                $stmtItem = $pdo->prepare("
+                    INSERT INTO `order_items` (
+                        `order_id`, `product_id`, `product_name`, `size`, `quantity`, `unit_price`
+                    ) VALUES (
+                        :order_id, :product_id, :product_name, :size, :quantity, :unit_price
+                    )
+                ");
+
+                foreach ($items as $item) {
+                    $stmtItem->execute([
+                        ':order_id'     => $orderId,
+                        ':product_id'   => $item['id'] ?? null,
+                        ':product_name' => $item['name'] ?? 'Custom Item',
+                        ':size'         => $item['size'] ?? null,
+                        ':quantity'     => (int) ($item['quantity'] ?? 1),
+                        ':unit_price'   => (float) ($item['price'] ?? 0)
+                    ]);
+                }
+            }
+
+            $pdo->commit();
+            $dbSaved = true;
+        } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log("Database Order Insert Failed: " . $e->getMessage());
+        }
+    }
+
+    // Always update JSON orders store as backup
     $ordersFile = $dataDir . '/orders.json';
     $existingOrders = [];
     if (file_exists($ordersFile)) {
@@ -110,29 +204,29 @@ if ($requestUri === '/api/orders' && $requestMethod === 'POST') {
     $newOrder = [
         'order_id' => $orderId,
         'created_at' => date('c'),
-        'items' => $orderData['items'] ?? [],
-        'total_amount' => $orderData['total_amount'] ?? 0,
-        'customer' => $orderData['customer'] ?? [],
-        'fulfillment' => $orderData['fulfillment'] ?? [],
-        'customization' => $orderData['customization'] ?? [],
-        'status' => 'PENDING_CONFIRMATION'
+        'items' => $items,
+        'total_amount' => $totalAmount,
+        'customer' => $customer,
+        'fulfillment' => $fulfillment,
+        'customization' => $customization,
+        'status' => 'PENDING_CONFIRMATION',
+        'db_persisted' => $dbSaved
     ];
 
     $existingOrders[] = $newOrder;
-
     file_put_contents($ordersFile, json_encode($existingOrders, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
     sendJsonResponse([
         'success' => true,
         'message' => 'Order created successfully',
         'order_id' => $orderId,
+        'storage' => $dbSaved ? 'mariadb' : 'json_fallback',
         'order' => $newOrder
     ], 201);
 }
 
 // 5. POST /api/upload (Custom cake reference image upload)
 if ($requestUri === '/api/upload' && $requestMethod === 'POST') {
-    // Check if multipart form data file upload
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $file = $_FILES['image'];
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -157,7 +251,6 @@ if ($requestUri === '/api/upload' && $requestMethod === 'POST') {
         }
     }
 
-    // Fallback: Check if base64 image string is passed in JSON payload
     $rawInput = file_get_contents('php://input');
     $jsonData = json_decode($rawInput, true);
 
@@ -165,7 +258,7 @@ if ($requestUri === '/api/upload' && $requestMethod === 'POST') {
         $base64Image = $jsonData['image'];
         if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
             $data = substr($base64Image, strpos($base64Image, ',') + 1);
-            $type = strtolower($type[1]); // jpg, png, etc.
+            $type = strtolower($type[1]);
             
             $data = base64_decode($data);
             if ($data !== false) {
