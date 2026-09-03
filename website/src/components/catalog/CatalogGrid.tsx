@@ -16,14 +16,22 @@ export default function CatalogGrid() {
   // Sub-filter based on active tab for a realistic, professional store experience
   const filteredCakes = cakes.filter((cake) => {
     if (activeTab === "all") return true
+
     if (activeTab === "classics") {
       // Classics: Vanilla, Butterscotch, Black Forest, Chocolate
-      return ["vanilla-cake", "butter-scotch-cake", "black-forest-cake", "chocolate-overload"].includes(cake.id)
+      return [
+        "vanilla-cake",
+        "butter-scotch-cake",
+        "black-forest-cake",
+        "chocolate-overload",
+      ].includes(cake.id)
     }
+
     if (activeTab === "specials") {
       // Specials: Rosomalai, Fresh Fruit
       return ["rosomalai-cake", "fresh-fruit-cake"].includes(cake.id)
     }
+
     return true
   })
 
@@ -45,46 +53,63 @@ export default function CatalogGrid() {
         <div className="text-xs font-black tracking-widest text-primary uppercase mb-2">
           MENU CATALOG
         </div>
+
         <h2 className="font-heading text-4xl font-extrabold tracking-tight text-text-primary md:text-5xl">
           Explore Our Signature Cakes
         </h2>
+
         <div className="mx-auto mt-4 h-1 w-16 bg-primary rounded-full"></div>
+
         <p className="mt-5 font-sans text-sm font-semibold text-text-secondary max-w-md mx-auto leading-relaxed">
-          Bakes of happiness handcrafted fresh daily with 100% vegetarian, egg-free ingredients.
+          Bakes of happiness handcrafted fresh daily with 100% vegetarian,
+          egg-free ingredients.
         </p>
 
-        {/* Playful E-Commerce Category Tabs */}
+        {/* Category Tabs */}
         <div className="mt-10 flex flex-wrap justify-center gap-3">
+
+          {/* ALL CAKES */}
           <button
             onClick={() => setActiveTab("all")}
-            className={`rounded-full px-6 py-2.5 font-sans text-sm font-extrabold transition-all duration-200 hover:scale-102 ${
-              activeTab === "all"
-                ? "bg-primary text-white shadow-md shadow-primary/20"
-                : "bg-white border-2 border-border text-text-primary hover:border-primary/30"
-            }`}
+            className={`rounded-full px-6 py-2.5 font-sans text-sm font-extrabold
+              transition-all duration-200 hover:scale-105
+              ${
+                activeTab === "all"
+                  ? "bg-[#F9C74F] text-black shadow-lg shadow-[#F9C74F]/30"
+                  : "bg-[#F9C74F] text-black hover:brightness-110"
+              }`}
           >
             All Cakes
           </button>
+
+          {/* CLASSICS */}
           <button
             onClick={() => setActiveTab("classics")}
-            className={`rounded-full px-6 py-2.5 font-sans text-sm font-extrabold transition-all duration-200 hover:scale-102 ${
-              activeTab === "classics"
-                ? "bg-primary text-white shadow-md shadow-primary/20"
-                : "bg-white border-2 border-border text-text-primary hover:border-primary/30"
-            }`}
+            className={`rounded-full px-6 py-2.5 font-sans text-sm font-extrabold
+              transition-all duration-200 hover:scale-105
+              ${
+                activeTab === "classics"
+                  ? "bg-[#F15BB5] text-black shadow-lg shadow-[#F15BB5]/30"
+                  : "bg-[#F15BB5] text-black hover:brightness-110"
+              }`}
           >
             Classics (Vanilla & Chocolate)
           </button>
+
+          {/* ARTISAN FRUIT & SPECIALS */}
           <button
             onClick={() => setActiveTab("specials")}
-            className={`rounded-full px-6 py-2.5 font-sans text-sm font-extrabold transition-all duration-200 hover:scale-102 ${
-              activeTab === "specials"
-                ? "bg-primary text-white shadow-md shadow-primary/20"
-                : "bg-white border-2 border-border text-text-primary hover:border-primary/30"
-            }`}
+            className={`rounded-full px-6 py-2.5 font-sans text-sm font-extrabold
+              transition-all duration-200 hover:scale-105
+              ${
+                activeTab === "specials"
+                  ? "bg-[#8BD646] text-black shadow-lg shadow-[#8BD646]/30"
+                  : "bg-[#8BD646] text-black hover:brightness-110"
+              }`}
           >
             Artisan Fruit & Specials
           </button>
+
         </div>
       </div>
 
