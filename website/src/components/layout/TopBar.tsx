@@ -17,7 +17,7 @@ export default function TopBar() {
     <div
       className={`z-50 w-full py-2.5 px-4 flex items-center justify-center text-xs font-bold tracking-widest ${isHome
           ? "fixed top-0 left-0 bg-white/20 backdrop-blur-md text-white border-b border-white/10"
-          : "sticky top-0 bg-accent text-primary shadow-xs"
+          : "sticky top-0 bg-[#FFDF33] text-primary shadow-xs"
         }`}
     >
       <span className="text-center w-full max-w-[70%] sm:max-w-none">
