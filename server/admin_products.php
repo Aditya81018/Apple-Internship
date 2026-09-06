@@ -1,16 +1,7 @@
 <?php
-$host = '127.0.0.1';
-$db   = 'raj-confections-db';
-$user = 'root';
-$pass = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-    ]);
-} catch (\PDOException $e) {
-    die("Database Connection Failed: " . $e->getMessage());
+require_once __DIR__ . '/config/database.php';
+if (!isset($pdo) || !$pdo) {
+    die("Database Connection Failed. Check your DB credentials in server/.env");
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && !empty($_GET['id'])) {

@@ -1,8 +1,5 @@
 <?php
-$host = '127.0.0.1';
-$db   = 'raj-confections-db';
-$user = 'root';
-$pass = '';
+require_once __DIR__ . '/config/database.php';
 
 $message = '';
 $error = '';
@@ -19,9 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "ID, Name, and Price are required fields.";
     } else {
         try {
-            $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
+            if (!isset($pdo) || !$pdo) {
+                throw new Exception("Database not connected.");
+            }
 
             $stmt = $pdo->prepare("INSERT INTO products (id, name, category, weight, price, description) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([$id, $name, $category, $weight, $price, $description]);
