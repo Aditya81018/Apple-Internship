@@ -3,12 +3,9 @@
     "id": "vanilla-cake",
     "name": "Vanilla Cake",
     "price": 400,
-    "image": "https://thescranline.com/wp-content/uploads/2025/02/VANILLA-CAKE-25-WEB-03-768x1024.jpg",
+    "image": "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
-    "sizes": [
-      "1 lb",
-      "2 lb"
-    ],
+    "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 400,
       "2 lb": 700
@@ -18,12 +15,9 @@
     "id": "butter-scotch-cake",
     "name": "Butter Scotch Cake",
     "price": 450,
-    "image": "https://cdn.bloomsflora.com/uploads/product/bloomsflora/6242_87_6242.webp",
+    "image": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
-    "sizes": [
-      "1 lb",
-      "2 lb"
-    ],
+    "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 450,
       "2 lb": 800
@@ -33,12 +27,9 @@
     "id": "black-forest-cake",
     "name": "Black Forest Cake",
     "price": 550,
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNvH039kQpo_MtWxXvGRDxBLh77CZeJ6IPL2s26VpYOIoOEbwB1gqka5qM&s=10",
+    "image": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
-    "sizes": [
-      "1 lb",
-      "2 lb"
-    ],
+    "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 550,
       "2 lb": 900
@@ -48,12 +39,9 @@
     "id": "chocolate-overload",
     "name": "Chocolate Overload",
     "price": 550,
-    "image": "https://api.floraindia.com/upload/NIWHjj52241754041542318.webp",
+    "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
-    "sizes": [
-      "1 lb",
-      "2 lb"
-    ],
+    "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 550,
       "2 lb": 1000
@@ -63,12 +51,9 @@
     "id": "rosomalai-cake",
     "name": "Rosomalai Cake",
     "price": 600,
-    "image": "https://www.mintsrecipes.com/wp-content/uploads/MG_1698-scaled.jpg",
+    "image": "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
-    "sizes": [
-      "1 lb",
-      "2 lb"
-    ],
+    "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 600,
       "2 lb": 1200
@@ -78,12 +63,9 @@
     "id": "fresh-fruit-cake",
     "name": "Fresh Fruit Cake",
     "price": 600,
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRn-csItg9qzC4w6XQiNLlZStpl646k3LWtApaOdu4F0Z0Mies8cyPub5s&s=10",
+    "image": "https://images.unsplash.com/photo-1519340333755-56e9c1d04579?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
-    "sizes": [
-      "1 lb",
-      "2 lb"
-    ],
+    "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 600,
       "2 lb": 1200
