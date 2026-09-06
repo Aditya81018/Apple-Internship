@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useCartStore } from "@/store/useCartStore"
 import { Button } from "@/components/ui/button"
-import { Images, Sparkles, X, Image as ImageIcon } from "lucide-react"
+import { Sparkles, Image as ImageIcon } from "lucide-react"
 
 // Custom Cake validation schema
 const customCakeSchema = z.object({
@@ -27,38 +27,10 @@ const FLAVORS = [
 
 const WEIGHTS = ["1 lb", "2 lb", "3 lb", "5 lb", "10 lb+"]
 
-const INSPIRATION_IMAGES = [
-  {
-    src: "/image1.jpeg",
-    alt: "Inspirational Berry Cake",
-  },
-  {
-    src: "/image2.jpeg",
-    alt: "Inspirational Cream Cake",
-  },
-  {
-    src: "/image3.jpeg",
-    alt: "Inspirational Strawberries",
-  },
-  {
-    src: "/image4.jpeg",
-    alt: "Inspirational Chocolate",
-  },
-  {
-    src: "/image5.jpeg",
-    alt: "Decorated Celebration Cake",
-  },
-  {
-    src: "/image6.jpeg",
-    alt: "Freshly Baked Cake",
-  },
-]
-
 export default function CustomCake() {
   const { addToCart } = useCartStore()
   const [selectedWeight, setSelectedWeight] = useState("2.0 lb")
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   
   const {
     register,
@@ -143,7 +115,7 @@ export default function CustomCake() {
     <div className="mx-auto max-w-7xl px-4 py-12 md:py-20 md:px-8">
       {/* Page Header */}
       <div className="mb-12 text-center md:mb-16">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFDF33] px-4 py-1.5 text-xs font-bold tracking-wider text-primary mb-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/60 px-4 py-1.5 text-xs font-bold tracking-wider text-primary mb-3">
           <Sparkles className="h-3.5 w-3.5" />
           ARTISAN BAKERY SERVICE
         </span>
@@ -163,68 +135,42 @@ export default function CustomCake() {
             Get Inspired by Our Creations
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            {INSPIRATION_IMAGES.slice(0, 4).map((image) => (
-              <div key={image.src} className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
-                <img src={image.src} alt={image.alt} className="h-full w-full object-cover" />
-              </div>
-            ))}
+            <div className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
+              <img
+                src="https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&w=400&q=80"
+                alt="Inspirational Berry Cake"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
+              <img
+                src="https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=400&q=80"
+                alt="Inspirational Cream Cake"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
+              <img
+                src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=400&q=80"
+                alt="Inspirational Strawberries"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
+              <img
+                src="https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=400&q=80"
+                alt="Inspirational Chocolate"
+                className="h-full w-full object-cover"
+              />
+            </div>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsGalleryOpen(true)}
-            className="w-full rounded-2xl border-2 border-primary py-5 font-extrabold text-primary hover:bg-primary hover:text-primary-foreground"
-          >
-            <Images />
-            View More
-          </Button>
           <div className="bg-accent/20 border-2 border-border rounded-3xl p-5 text-xs text-text-secondary leading-relaxed font-sans font-semibold">
             * Every customized cake is made to order with organic, fresh ingredients. Prices are calculated based on size, custom elements, and materials used. You will receive a final payment request on WhatsApp.
           </div>
-
-          {isGalleryOpen && (
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="inspiration-gallery-title"
-              onClick={() => setIsGalleryOpen(false)}
-            >
-              <div
-                className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-3xl border-2 border-border bg-black p-5 md:p-8"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <div className="mb-5 flex items-center justify-between gap-4">
-                  <h2 id="inspiration-gallery-title" className="font-heading text-2xl font-bold text-text-primary">
-                    Cake Inspiration Gallery
-                  </h2>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Close gallery"
-                    onClick={() => setIsGalleryOpen(false)}
-                  >
-                    <X />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                  {INSPIRATION_IMAGES.map((image) => (
-                    <img
-                      key={image.src}
-                      src={image.src}
-                      alt={image.alt}
-                      className="aspect-square w-full rounded-2xl object-cover"
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Column: Custom Form */}
-        <div className="lg:col-span-7 bg-[#123456] border-2 border-border rounded-[32px] p-6 md:p-8 shadow-sm">
+        <div className="lg:col-span-7 bg-white border-2 border-border rounded-[32px] p-6 md:p-8 shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
             
             {/* Base Flavor */}
@@ -263,8 +209,8 @@ export default function CustomCake() {
                       onClick={() => setSelectedWeight(weight)}
                       className={`rounded-2xl px-5 py-2 font-sans text-xs font-extrabold border transition-all duration-200 cursor-pointer ${
                         isActive
-                          ? "bg-primary text-black border-primary shadow-xs"
-                          : "bg-[#E6D0FF] border-border text-black hover:border-primary/45"
+                          ? "bg-primary text-white border-primary shadow-xs"
+                          : "bg-white border-border text-text-primary hover:border-primary/45"
                       }`}
                     >
                       {weight}
@@ -284,7 +230,7 @@ export default function CustomCake() {
                 placeholder="Describe your cake in detail. Specify colors, messages, decorations, or other custom requests..."
                 rows={5}
                 {...register("instructions")}
-                className="w-full p-4 font-sans text-sm font-medium rounded-2xl bg-[#FAF6E8] border-2 border-border hover:border-primary/30 outline-none focus:border-primary transition-all resize-y min-h-[120px] placeholder:text-black"
+                className="w-full p-4 font-sans text-sm font-medium rounded-2xl bg-background border-2 border-border hover:border-primary/30 outline-none focus:border-primary transition-all resize-y min-h-[120px]"
               />
               {errors.instructions && (
                 <span className="font-sans text-xs text-destructive font-bold">{errors.instructions.message}</span>

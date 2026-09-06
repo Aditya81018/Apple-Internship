@@ -23,7 +23,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="w-full bg-black">
+    <header className="w-full bg-transparent">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
         {/* Logo and Brand Sub-title */}
         <Link to="/" className="flex flex-col items-start transition-transform hover:scale-[1.02]">

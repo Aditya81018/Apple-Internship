@@ -2,7 +2,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="w-full border-t border-border bg-[#123456] py-12 text-text-secondary">
+    <footer className="w-full border-t border-border bg-card py-12 text-text-secondary">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Brand and Policy */}
@@ -26,7 +26,7 @@ export default function Footer() {
                 <a href="tel:+919432365368" className="hover:text-primary transition-colors">+91 94323 65368</a>
               </li>
               <li>
-                <span className="font-medium text-text-primary font-sans text-xs block mt-1 text-white">
+                <span className="font-medium text-text-primary font-sans text-xs block mt-1 text-muted-foreground">
                   * Please place custom orders at least 3 days in advance.
                 </span>
               </li>
@@ -39,7 +39,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-1 font-sans text-sm">
               <li>Monday - Sunday</li>
               <li className="text-text-primary font-medium">10:00 AM - 8:00 PM</li>
-              <li className="mt-2 text-xs text-white">
+              <li className="mt-2 text-xs text-muted-foreground">
                 Kolkata, West Bengal, India
               </li>
             </ul>

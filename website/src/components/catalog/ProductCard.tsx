@@ -140,7 +140,8 @@ export default function ProductCard({
         />
 
         {/* Eggless Tag */}
-        <div className="absolute top-4 left-4 inline-flex items-center gap-1 rounded-full bg-black px-3.5 py-1.5 text-[9px] font-black tracking-widest text-white shadow-sm uppercase">
+        <div className="absolute top-4 left-4 inline-flex items-center gap-1 rounded-full bg-secondary/95 px-3.5 py-1.5 text-[9px] font-black tracking-widest text-white shadow-sm uppercase">
+          <Sparkles className="h-3 w-3 shrink-0" />
           100% EGGLESS
         </div>
       </div>
