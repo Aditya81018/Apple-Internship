@@ -106,8 +106,41 @@ if (isset($pdo) && $pdo) {
 } else if (file_exists($jsonGalleryFile)) {
     $gItems = json_decode(file_get_contents($jsonGalleryFile), true) ?? [];
     $totalGalleryCount = count($gItems);
-    foreach ($gItems as $gi) {
-        if (!empty($gi['is_featured'])) $featuredGalleryCount++;
+}
+
+$totalOrdersCount = 0;
+$pendingOrdersCount = 0;
+$recentOrders = [];
+
+$jsonOrdersFile = __DIR__ . '/data/orders.json';
+if (isset($pdo) && $pdo) {
+    try {
+        $stmtO = $pdo->query("SELECT * FROM orders ORDER BY id DESC LIMIT 5");
+        $recentOrders = $stmtO->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtCount = $pdo->query("SELECT COUNT(*) FROM orders");
+        $totalOrdersCount = (int)$stmtCount->fetchColumn();
+
+        $stmtPending = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'PENDING_CONFIRMATION' OR status = 'PENDING'");
+        $pendingOrdersCount = (int)$stmtPending->fetchColumn();
+    } catch (\Exception $e) {
+        if (file_exists($jsonOrdersFile)) {
+            $allO = json_decode(file_get_contents($jsonOrdersFile), true) ?? [];
+            $totalOrdersCount = count($allO);
+            $recentOrders = array_slice($allO, 0, 5);
+            foreach ($allO as $o) {
+                $st = strtoupper($o['status'] ?? '');
+                if ($st === 'PENDING_CONFIRMATION' || $st === 'PENDING') $pendingOrdersCount++;
+            }
+        }
+    }
+} else if (file_exists($jsonOrdersFile)) {
+    $allO = json_decode(file_get_contents($jsonOrdersFile), true) ?? [];
+    $totalOrdersCount = count($allO);
+    $recentOrders = array_slice($allO, 0, 5);
+    foreach ($allO as $o) {
+        $st = strtoupper($o['status'] ?? '');
+        if ($st === 'PENDING_CONFIRMATION' || $st === 'PENDING') $pendingOrdersCount++;
     }
 }
 
@@ -520,6 +553,10 @@ $isAcceptingOrders = ($settings['accepting_orders'] ?? '1') === '1';
                 <i data-lucide="home" style="width:16px; height:16px;"></i>
                 <span>Dashboard</span>
             </a>
+            <a href="admin_orders.php" class="nav-link">
+                <i data-lucide="shopping-bag" style="width:16px; height:16px;"></i>
+                <span>Orders</span>
+            </a>
             <a href="admin_products.php" class="nav-link">
                 <i data-lucide="package" style="width:16px; height:16px;"></i>
                 <span>Products Catalog</span>
@@ -577,7 +614,40 @@ $isAcceptingOrders = ($settings['accepting_orders'] ?? '1') === '1';
         <!-- Dashboard Modules Grid -->
         <div class="modules-grid">
 
-            <!-- Module 1: Products Catalog -->
+            <!-- Module 1: Customer Orders CMS -->
+            <div class="module-card">
+                <div>
+                    <div class="module-header">
+                        <div class="module-icon" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe;">
+                            <i data-lucide="shopping-bag" style="width:28px; height:28px;"></i>
+                        </div>
+                        <span class="module-badge" style="background:#e0e7ff; color:#3730a3;">Live Orders</span>
+                    </div>
+
+                    <div class="module-title">Customer Orders</div>
+                    <div class="module-desc">
+                        View real-time customer cake orders recorded in MariaDB, update order baking/delivery statuses, and review custom requests.
+                    </div>
+
+                    <div class="module-stats">
+                        <div class="stat-item">
+                            <div class="label">Total Orders</div>
+                            <div class="val"><?= $totalOrdersCount ?></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Pending Confirmation</div>
+                            <div class="val" style="color:#d97706;"><?= $pendingOrdersCount ?></div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="admin_orders.php" class="btn-module" style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);">
+                    <span>View & Manage Orders</span>
+                    <i data-lucide="arrow-right" style="width:16px; height:16px;"></i>
+                </a>
+            </div>
+
+            <!-- Module 2: Products Catalog -->
             <div class="module-card">
                 <div>
                     <div class="module-header">
@@ -684,6 +754,78 @@ $isAcceptingOrders = ($settings['accepting_orders'] ?? '1') === '1';
                 </a>
             </div>
 
+        </div>
+
+        <!-- Recent Incoming Orders Table Widget -->
+        <div style="margin-top: 40px; background: #ffffff; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); padding: 28px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="clock" style="width:20px; height:20px; color:var(--primary);"></i>
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--text-dark);">Recent Customer Orders</h2>
+                </div>
+                <a href="admin_orders.php" style="font-size: 13px; font-weight: 700; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                    <span>View All Orders</span>
+                    <i data-lucide="chevron-right" style="width:14px; height:14px;"></i>
+                </a>
+            </div>
+
+            <?php if (empty($recentOrders)): ?>
+                <div style="text-align: center; padding: 32px 16px; color: var(--text-muted);">
+                    <i data-lucide="inbox" style="width:40px; height:40px; color:#cbd5e1; margin-bottom:8px;"></i>
+                    <p style="font-weight:600; font-size:14px;">No recent customer orders recorded yet.</p>
+                    <p style="font-size:12px;">Placing an order on the website will automatically record it here.</p>
+                </div>
+            <?php else: ?>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color); text-align: left;">
+                                <th style="padding: 10px 14px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Order ID</th>
+                                <th style="padding: 10px 14px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Customer</th>
+                                <th style="padding: 10px 14px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Fulfillment</th>
+                                <th style="padding: 10px 14px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Amount</th>
+                                <th style="padding: 10px 14px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Status</th>
+                                <th style="padding: 10px 14px; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recentOrders as $ro): 
+                                $st = strtoupper($ro['status'] ?? 'PENDING');
+                                $statusStyle = 'background:#fef3c7; color:#b45309;';
+                                if ($st === 'CONFIRMED') $statusStyle = 'background:#dbeafe; color:#1d4ed8;';
+                                if ($st === 'BAKING') $statusStyle = 'background:#f3e8ff; color:#6b21a8;';
+                                if ($st === 'DELIVERED') $statusStyle = 'background:#d1fae5; color:#065f46;';
+                            ?>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px 14px; font-family: monospace; font-weight: 800; color: var(--primary);">
+                                        <?= htmlspecialchars($ro['order_id']) ?>
+                                    </td>
+                                    <td style="padding: 12px 14px; font-weight: 700;">
+                                        <?= htmlspecialchars($ro['customer_name'] ?? 'Guest') ?>
+                                        <div style="font-size: 11px; font-weight: 500; color: var(--text-muted);">
+                                            <?= htmlspecialchars($ro['customer_phone'] ?? '') ?>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 14px; text-transform: capitalize; font-weight: 600;">
+                                        <?= htmlspecialchars($ro['fulfillment_type'] ?? 'Pickup') ?>
+                                    </td>
+                                    <td style="padding: 12px 14px; font-weight: 800;">
+                                        ₹<?= number_format(floatval($ro['total_amount'] ?? 0), 2) ?>
+                                    </td>
+                                    <td style="padding: 12px 14px;">
+                                        <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; <?= $statusStyle ?>">
+                                            <?= htmlspecialchars($st) ?>
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px 14px; font-size: 12px; color: var(--text-muted);">
+                                        <?= date('d M Y, h:i A', strtotime($ro['created_at'] ?? 'now')) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
         </div>
 
     </div>

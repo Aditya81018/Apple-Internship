@@ -50,6 +50,10 @@ if ($uri === '/admin/gallery') {
     require __DIR__ . '/admin_gallery.php';
     exit;
 }
+if ($uri === '/admin/orders') {
+    require __DIR__ . '/admin_orders.php';
+    exit;
+}
 if ($uri === '/admin' || $uri === '/admin/') {
     require __DIR__ . '/admin_dashboard.php';
     exit;

@@ -158,75 +158,189 @@ if ($uri === '/api/products' && $method === 'GET') {
     exit;
 }
 
-// 3. Create Order & Line Items (Database-backed)
+// 3. Orders Endpoints (Database-backed with JSON fallback)
+if ($uri === '/api/orders' && $method === 'GET') {
+    $orderIdParam = $_GET['id'] ?? null;
+    $orders = [];
+
+    if (isset($pdo)) {
+        try {
+            if ($orderIdParam) {
+                $stmt = $pdo->prepare("SELECT * FROM orders WHERE order_id = ?");
+                $stmt->execute([$orderIdParam]);
+                $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } else {
+                $stmt = $pdo->query("SELECT * FROM orders ORDER BY id DESC");
+                $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            // Fetch line items for each order
+            $itemStmt = $pdo->prepare("SELECT * FROM order_items WHERE order_id = ?");
+            foreach ($orders as &$ord) {
+                $itemStmt->execute([$ord['order_id']]);
+                $ord['items'] = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+                if (!empty($ord['raw_payload'])) {
+                    $ord['decoded_payload'] = json_decode($ord['raw_payload'], true);
+                }
+            }
+        } catch (\Exception $e) {
+            $orders = [];
+        }
+    }
+
+    if (empty($orders)) {
+        $jsonFile = __DIR__ . '/../data/orders.json';
+        if (file_exists($jsonFile)) {
+            $jsonOrders = json_decode(file_get_contents($jsonFile), true) ?? [];
+            if ($orderIdParam) {
+                $orders = array_values(array_filter($jsonOrders, fn($o) => ($o['order_id'] ?? '') === $orderIdParam));
+            } else {
+                $orders = $jsonOrders;
+            }
+        }
+    }
+
+    echo json_encode($orders);
+    exit;
+}
+
 if ($uri === '/api/orders' && $method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
     
     $orderId = "RC-" . date('Ymd') . "-" . strtoupper(substr(md5(uniqid()), 0, 4));
-    $totalAmount = $input['total_amount'] ?? 0;
+    $totalAmount = floatval($input['total_amount'] ?? $input['totalAmount'] ?? 0);
     
-    $customerName = $input['customer']['name'] ?? 'Guest';
-    $customerPhone = $input['customer']['phone'] ?? '';
+    $customerName = trim($input['customer']['name'] ?? $input['name'] ?? 'Guest');
+    $customerPhone = trim($input['customer']['phone'] ?? $input['phone'] ?? '');
     
-    $fulfillmentType = $input['fulfillment']['type'] ?? 'delivery';
-    $fulfillmentDate = $input['fulfillment']['date'] ?? date('Y-m-d');
-    $fulfillmentTime = $input['fulfillment']['time'] ?? '';
-    $address = $input['fulfillment']['address'] ?? '';
+    $fulfillmentType = trim($input['fulfillment']['type'] ?? $input['fulfillment'] ?? 'pickup');
+    $fulfillmentDate = trim($input['fulfillment']['date'] ?? $input['date'] ?? date('Y-m-d'));
+    if (empty($fulfillmentDate)) $fulfillmentDate = date('Y-m-d');
+    $fulfillmentTime = trim($input['fulfillment']['time'] ?? $input['time'] ?? '12:00 PM');
+    $address = trim($input['fulfillment']['address'] ?? $input['address'] ?? '');
     
-    $cakeName = $input['customization']['name_on_cake'] ?? '';
-    $specialNotes = $input['customization']['special_notes'] ?? '';
+    $cakeName = trim($input['customization']['name_on_cake'] ?? $input['name_on_cake'] ?? '');
+    $specialNotes = trim($input['customization']['special_notes'] ?? $input['notes'] ?? $input['special_notes'] ?? '');
+    $status = 'PENDING_CONFIRMATION';
+    $createdAt = date('Y-m-d H:i:s');
+
+    $dbInserted = false;
 
     if (isset($pdo)) {
         try {
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare("INSERT INTO orders (order_id, total_amount, customer_name, customer_phone, fulfillment_type, fulfillment_date, fulfillment_time, address, name_on_cake, special_notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-            $stmt->execute([$orderId, $totalAmount, $customerName, $customerPhone, $fulfillmentType, $fulfillmentDate, $fulfillmentTime, $address, $cakeName, $specialNotes]);
-            $dbOrderId = $pdo->lastInsertId();
+            $stmt = $pdo->prepare("INSERT INTO orders (order_id, status, total_amount, customer_name, customer_phone, fulfillment_type, fulfillment_date, fulfillment_time, delivery_address, name_on_cake, special_notes, raw_payload, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $stmt->execute([
+                $orderId,
+                $status,
+                $totalAmount,
+                $customerName,
+                $customerPhone,
+                $fulfillmentType,
+                $fulfillmentDate,
+                $fulfillmentTime,
+                $address,
+                $cakeName,
+                $specialNotes,
+                json_encode($input)
+            ]);
 
             if (!empty($input['items']) && is_array($input['items'])) {
-                $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, product_name, size, quantity, price) VALUES (?, ?, ?, ?, ?, ?)");
+                $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, product_name, size, quantity, unit_price) VALUES (?, ?, ?, ?, ?, ?)");
                 foreach ($input['items'] as $item) {
                     $itemStmt->execute([
-                        $dbOrderId,
-                        $item['id'] ?? 'unknown',
+                        $orderId,
+                        $item['id'] ?? $item['productId'] ?? 'unknown',
                         $item['name'] ?? 'Product',
                         $item['size'] ?? 'Standard',
-                        $item['quantity'] ?? 1,
-                        $item['price'] ?? 0
+                        intval($item['quantity'] ?? 1),
+                        floatval($item['price'] ?? 0)
                     ]);
                 }
             }
 
             $pdo->commit();
-
-            http_response_code(201);
-            echo json_encode([
-                "success" => true,
-                "message" => "Order created successfully",
-                "order_id" => $orderId,
-                "storage" => "mariadb",
-                "order" => $input
-            ]);
-            exit;
+            $dbInserted = true;
 
         } catch (\Exception $e) {
             if (isset($pdo) && $pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            http_response_code(500);
-            echo json_encode(["error" => "Database error: " . $e->getMessage()]);
-            exit;
         }
     }
+
+    // Sync to JSON file for fallback
+    $jsonFile = __DIR__ . '/../data/orders.json';
+    $jsonOrders = [];
+    if (file_exists($jsonFile)) {
+        $jsonOrders = json_decode(file_get_contents($jsonFile), true) ?? [];
+    }
+
+    $newOrderRecord = [
+        "id" => time(),
+        "order_id" => $orderId,
+        "status" => $status,
+        "total_amount" => $totalAmount,
+        "customer_name" => $customerName,
+        "customer_phone" => $customerPhone,
+        "fulfillment_type" => $fulfillmentType,
+        "fulfillment_date" => $fulfillmentDate,
+        "fulfillment_time" => $fulfillmentTime,
+        "delivery_address" => $address,
+        "name_on_cake" => $cakeName,
+        "special_notes" => $specialNotes,
+        "items" => $input['items'] ?? [],
+        "created_at" => $createdAt
+    ];
+
+    array_unshift($jsonOrders, $newOrderRecord);
+    file_put_contents($jsonFile, json_encode($jsonOrders, JSON_PRETTY_PRINT));
 
     http_response_code(201);
     echo json_encode([
         "success" => true,
-        "message" => "Order received (Fallback mode - DB not connected)",
+        "message" => "Order recorded successfully",
         "order_id" => $orderId,
-        "order" => $input
+        "storage" => $dbInserted ? "mariadb" : "json_fallback",
+        "order" => $newOrderRecord
     ]);
+    exit;
+}
+
+if ($uri === '/api/orders/update_status' && $method === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+    $orderId = trim($input['order_id'] ?? $_GET['order_id'] ?? '');
+    $newStatus = trim($input['status'] ?? '');
+
+    if (empty($orderId) || empty($newStatus)) {
+        http_response_code(400);
+        echo json_encode(["error" => "order_id and status are required."]);
+        exit;
+    }
+
+    if (isset($pdo)) {
+        try {
+            $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
+            $stmt->execute([$newStatus, $orderId]);
+        } catch (\Exception $e) {
+            // Fall back
+        }
+    }
+
+    $jsonFile = __DIR__ . '/../data/orders.json';
+    if (file_exists($jsonFile)) {
+        $jsonOrders = json_decode(file_get_contents($jsonFile), true) ?? [];
+        foreach ($jsonOrders as &$o) {
+            if (($o['order_id'] ?? '') === $orderId) {
+                $o['status'] = $newStatus;
+                break;
+            }
+        }
+        file_put_contents($jsonFile, json_encode($jsonOrders, JSON_PRETTY_PRINT));
+    }
+
+    echo json_encode(["success" => true, "order_id" => $orderId, "status" => $newStatus]);
     exit;
 }
 

@@ -581,6 +581,10 @@ $avgPrice = $totalProducts > 0 ? round($totalPrice / $totalProducts, 2) : 0;
                 <i data-lucide="home" style="width:16px; height:16px;"></i>
                 <span>Dashboard</span>
             </a>
+            <a href="admin_orders.php" class="nav-link">
+                <i data-lucide="shopping-bag" style="width:16px; height:16px;"></i>
+                <span>Orders</span>
+            </a>
             <a href="admin_products.php" class="nav-link active">
                 <i data-lucide="package" style="width:16px; height:16px;"></i>
                 <span>Products Catalog</span>

@@ -22,6 +22,7 @@ import {
 // Form validation schema
 const checkoutSchema = z.object({
   name: z.string().min(1, { message: "Please enter your name" }),
+  phone: z.string().optional(),
   notes: z.string().optional(),
   fulfillment: z.enum(["pickup", "delivery"]),
   address: z.string().optional(),
@@ -216,6 +217,47 @@ export default function Checkout() {
     const checkoutData = {
       ...data,
       address: data.fulfillment === "delivery" ? address : "",
+    }
+
+    // Compute total order amount
+    const totalAmount = updatedCart.reduce(
+      (sum, item) => sum + (item.price || 0) * item.quantity,
+      0
+    )
+
+    // Record order in MariaDB database via REST API
+    try {
+      await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: {
+            name: data.name,
+            phone: data.phone || "",
+          },
+          fulfillment: {
+            type: data.fulfillment,
+            date: data.date,
+            time: data.time,
+            address: data.fulfillment === "delivery" ? address : "",
+          },
+          customization: {
+            special_notes: data.notes || "",
+          },
+          total_amount: totalAmount,
+          items: updatedCart.map((item) => ({
+            id: item.productId || item.id,
+            name: item.name,
+            size: item.size || "Standard",
+            quantity: item.quantity,
+            price: item.price || 0,
+            isCustom: item.isCustom || false,
+            customDetails: item.customDetails || null,
+          })),
+        }),
+      })
+    } catch (err) {
+      console.error("Order database logging error:", err)
     }
 
     // Generate payload and redirect with uploaded URLs
