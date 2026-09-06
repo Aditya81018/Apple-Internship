@@ -33,7 +33,11 @@ if (file_exists($adminFilePath) && is_file($adminFilePath) && pathinfo($adminFil
     exit;
 }
 
-// 4. Shortcut for /admin URL
+// 4. Shortcut for /admin and /login URLs
+if ($uri === '/login' || $uri === '/admin/login') {
+    require __DIR__ . '/admin_login.php';
+    exit;
+}
 if ($uri === '/admin' || $uri === '/admin/') {
     require __DIR__ . '/admin_products.php';
     exit;

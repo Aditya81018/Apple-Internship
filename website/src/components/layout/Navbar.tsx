@@ -5,7 +5,7 @@ import { useCartStore } from "@/store/useCartStore"
 export default function Navbar() {
   const location = useLocation()
   const { cart, toggleDrawer } = useCartStore()
-  
+
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0)
 
   const handleCartClick = () => {
@@ -49,9 +49,8 @@ export default function Navbar() {
           </Link>
           <Link
             to="/custom"
-            className={`relative py-1.5 font-sans text-sm font-bold transition-all hover:text-primary ${
-              location.pathname === "/custom" ? "text-primary" : "text-text-primary"
-            }`}
+            className={`relative py-1.5 font-sans text-sm font-bold transition-all hover:text-primary ${location.pathname === "/custom" ? "text-primary" : "text-text-primary"
+              }`}
           >
             Custom Order
             {location.pathname === "/custom" && (

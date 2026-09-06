@@ -8,19 +8,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/auth.php';
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 
 header('Content-Type: application/json');
 
-// 1. Health Check
+// 1. Fixed ID & Password Authentication Endpoints
+if (($uri === '/api/login' || $uri === '/api/auth/login') && $method === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+    $id = trim($input['id'] ?? $input['username'] ?? '');
+    $password = trim($input['password'] ?? '');
+
+    if (empty($id) || empty($password)) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "error" => "ID/Username and Password are required."
+        ]);
+        exit;
+    }
+
+    if (verifyAdminCredentials($id, $password)) {
+        $token = loginAdminSession($id);
+        http_response_code(200);
+        echo json_encode([
+            "success" => true,
+            "message" => "Authentication successful",
+            "token" => $token,
+            "user" => [
+                "id" => $id,
+                "role" => "admin"
+            ]
+        ]);
+        exit;
+    } else {
+        http_response_code(401);
+        echo json_encode([
+            "success" => false,
+            "error" => "Invalid Server ID or Password."
+        ]);
+        exit;
+    }
+}
+
+if ($uri === '/api/auth/me' && $method === 'GET') {
+    if (isAdminLoggedIn()) {
+        echo json_encode([
+            "authenticated" => true,
+            "user" => [
+                "id" => $_SESSION['admin_id'] ?? getAdminCredentials()['id'],
+                "role" => "admin"
+            ]
+        ]);
+    } else {
+        echo json_encode([
+            "authenticated" => false
+        ]);
+    }
+    exit;
+}
+
+if ($uri === '/api/auth/logout' && $method === 'POST') {
+    logoutAdminSession();
+    echo json_encode([
+        "success" => true,
+        "message" => "Logged out successfully"
+    ]);
+    exit;
+}
+
+// 2. Health Check
 if ($uri === '/api/health') {
     echo json_encode([
         "status" => "ok",
         "timestamp" => date('c'),
-        "database" => isset($pdo) ? "connected" : "disconnected"
+        "database" => isset($pdo) ? "connected" : "disconnected",
+        "auth_system" => "fixed_credentials"
     ]);
     exit;
 }
@@ -108,34 +173,26 @@ if ($uri === '/api/orders' && $method === 'POST') {
     exit;
 }
 
-// 4. Custom Cake Image Upload
+require_once __DIR__ . '/../config/storage.php';
+
+// 4. Image Upload Endpoint (Supabase / Local Storage)
 if ($uri === '/api/upload' && $method === 'POST') {
-    $uploadDir = __DIR__ . '/../uploads/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
-    }
-
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $tmpName = $_FILES['image']['tmp_name'];
-        $origName = basename($_FILES['image']['name']);
-        $ext = pathinfo($origName, PATHINFO_EXTENSION);
-        $newName = 'upload_' . time() . '_' . uniqid() . '.' . ($ext ?: 'jpg');
-        $targetFile = $uploadDir . $newName;
-
-        if (move_uploaded_file($tmpName, $targetFile)) {
+    $file = $_FILES['image'] ?? $_FILES['image_file'] ?? $_FILES['file'] ?? null;
+    if ($file) {
+        $result = uploadFileToStorage($file);
+        if ($result['success']) {
             http_response_code(201);
-            echo json_encode([
-                "success" => true,
-                "message" => "File uploaded successfully",
-                "filename" => $newName,
-                "url" => "/uploads/" . $newName
-            ]);
+            echo json_encode($result);
+            exit;
+        } else {
+            http_response_code(400);
+            echo json_encode(["error" => $result['error'] ?? "Upload failed"]);
             exit;
         }
     }
 
     http_response_code(400);
-    echo json_encode(["error" => "No file uploaded or upload failed"]);
+    echo json_encode(["error" => "No file attached to upload request."]);
     exit;
 }
 
