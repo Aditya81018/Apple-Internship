@@ -39,6 +39,18 @@ export default function Navbar() {
       </Link>
 
       <Link
+        to="/gallery"
+        className={`relative py-1 font-sans ${isMobile ? "text-xs font-extrabold" : "text-sm font-bold"} transition-all hover:text-primary ${
+          location.pathname === "/gallery" ? "text-primary font-extrabold" : "text-text-primary"
+        }`}
+      >
+        Gallery
+        {location.pathname === "/gallery" && (
+          <span className="absolute -bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary" />
+        )}
+      </Link>
+
+      <Link
         to="/custom"
         className={`relative py-1 font-sans ${isMobile ? "text-xs font-extrabold" : "text-sm font-bold"} transition-all hover:text-primary ${
           location.pathname === "/custom" ? "text-primary font-extrabold" : "text-text-primary"

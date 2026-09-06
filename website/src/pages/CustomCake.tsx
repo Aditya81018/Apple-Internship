@@ -1,10 +1,11 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { Link } from "react-router-dom"
 import { useCartStore } from "@/store/useCartStore"
 import { Button } from "@/components/ui/button"
-import { Sparkles, Image as ImageIcon } from "lucide-react"
+import { Sparkles, Image as ImageIcon, ArrowRight, Camera } from "lucide-react"
 
 // Custom Cake validation schema
 const customCakeSchema = z.object({
@@ -27,11 +28,54 @@ const FLAVORS = [
 
 const WEIGHTS = ["1 lb", "2 lb", "3 lb", "5 lb", "10 lb+"]
 
+interface InspirationItem {
+  id: number
+  title: string
+  image: string
+}
+
+const DEFAULT_INSPIRATIONS: InspirationItem[] = [
+  {
+    id: 1,
+    title: "Berry Custom Cake",
+    image: "https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: 2,
+    title: "Glaze Cream Cake",
+    image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: 3,
+    title: "Vanilla Cupcake Tower",
+    image: "https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: 4,
+    title: "Chocolate Fudgy Stack",
+    image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=400&q=80",
+  },
+]
+
 export default function CustomCake() {
   const { addToCart } = useCartStore()
   const [selectedWeight, setSelectedWeight] = useState("2.0 lb")
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [inspirations, setInspirations] = useState<InspirationItem[]>(DEFAULT_INSPIRATIONS)
   
+  useEffect(() => {
+    fetch("/api/gallery?featured=1")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setInspirations(data)
+        }
+      })
+      .catch(() => {
+        // Fallback to DEFAULT_INSPIRATIONS
+      })
+  }, [])
+
   const {
     register,
     handleSubmit,
@@ -131,39 +175,42 @@ export default function CustomCake() {
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
         {/* Left Column: Inspiration Gallery */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          <h3 className="font-heading text-xl font-bold text-text-primary">
-            Get Inspired by Our Creations
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
-              <img
-                src="https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&w=400&q=80"
-                alt="Inspirational Berry Cake"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
-              <img
-                src="https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=400&q=80"
-                alt="Inspirational Cream Cake"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
-              <img
-                src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=400&q=80"
-                alt="Inspirational Strawberries"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs">
-              <img
-                src="https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=400&q=80"
-                alt="Inspirational Chocolate"
-                className="h-full w-full object-cover"
-              />
-            </div>
+          <div className="flex items-center justify-between">
+            <h3 className="font-heading text-xl font-bold text-text-primary">
+              Get Inspired by Our Creations
+            </h3>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {inspirations.slice(0, 4).map((item) => (
+              <div
+                key={item.id}
+                className="group relative aspect-square overflow-hidden rounded-[24px] border-2 border-border/60 hover:scale-[1.03] transition-all duration-300 shadow-2xs bg-accent/10"
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                  <span className="text-[11px] font-bold text-white truncate">
+                    {item.title}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Checkout More Cakes We Made CTA Button */}
+          <Link
+            to="/gallery"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl border-2 border-primary/20 bg-accent/40 hover:bg-primary hover:text-white hover:border-primary px-5 py-3.5 font-sans text-xs font-extrabold text-primary transition-all duration-200 shadow-2xs group cursor-pointer"
+          >
+            <Camera className="h-4 w-4" />
+            <span>Checkout More Cakes We Made (View Gallery)</span>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+
           <div className="bg-accent/20 border-2 border-border rounded-3xl p-5 text-xs text-text-secondary leading-relaxed font-sans font-semibold">
             * Every customized cake is made to order with organic, fresh ingredients. Prices are calculated based on size, custom elements, and materials used. You will receive a final payment request on WhatsApp.
           </div>

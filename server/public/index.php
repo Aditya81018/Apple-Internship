@@ -90,7 +90,60 @@ if ($uri === '/api/health') {
     exit;
 }
 
-// 2. Fetch Products
+// 2. Settings Endpoints
+if ($uri === '/api/settings' && $method === 'GET') {
+    $settings = [];
+    $jsonFile = __DIR__ . '/../data/settings.json';
+    if (file_exists($jsonFile)) {
+        $settings = json_decode(file_get_contents($jsonFile), true) ?? [];
+    }
+
+    if (isset($pdo)) {
+        try {
+            $stmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
+            $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            if (!empty($rows)) {
+                $settings = array_merge($settings, $rows);
+            }
+        } catch (\Exception $e) {
+            // Fall back to JSON settings
+        }
+    }
+
+    echo json_encode($settings);
+    exit;
+}
+
+if ($uri === '/api/settings' && $method === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+    
+    $jsonFile = __DIR__ . '/../data/settings.json';
+    $existing = [];
+    if (file_exists($jsonFile)) {
+        $existing = json_decode(file_get_contents($jsonFile), true) ?? [];
+    }
+
+    foreach ($input as $key => $val) {
+        $existing[$key] = (string)$val;
+    }
+    file_put_contents($jsonFile, json_encode($existing, JSON_PRETTY_PRINT));
+
+    if (isset($pdo)) {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+            foreach ($input as $key => $val) {
+                $stmt->execute([$key, (string)$val]);
+            }
+        } catch (\Exception $e) {
+            // DB fallback handled via JSON update
+        }
+    }
+
+    echo json_encode(["success" => true, "settings" => $existing]);
+    exit;
+}
+
+// 3. Fetch Products
 if ($uri === '/api/products' && $method === 'GET') {
     if (isset($pdo)) {
         $stmt = $pdo->query("SELECT * FROM products ORDER BY id ASC");
@@ -177,9 +230,189 @@ if ($uri === '/api/orders' && $method === 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/../config/storage.php';
+// 4. Gallery Endpoints
+if ($uri === '/api/gallery' && $method === 'GET') {
+    $featuredOnly = isset($_GET['featured']) && $_GET['featured'] == '1';
+    $gallery = [];
 
-// 4. Image Upload Endpoint (Supabase / Local Storage)
+    if (isset($pdo)) {
+        try {
+            $sql = "SELECT * FROM gallery";
+            if ($featuredOnly) {
+                $sql .= " WHERE is_featured = 1";
+            }
+            $sql .= " ORDER BY id DESC";
+            $stmt = $pdo->query($sql);
+            $gallery = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($gallery as &$item) {
+                $item['id'] = (int)$item['id'];
+                $item['is_featured'] = (int)($item['is_featured'] ?? 0);
+            }
+        } catch (\Exception $e) {
+            $gallery = [];
+        }
+    }
+
+    if (empty($gallery)) {
+        $jsonFile = __DIR__ . '/../data/gallery.json';
+        if (file_exists($jsonFile)) {
+            $gallery = json_decode(file_get_contents($jsonFile), true) ?? [];
+            if ($featuredOnly) {
+                $gallery = array_values(array_filter($gallery, fn($item) => !empty($item['is_featured'])));
+            }
+        }
+    }
+
+    echo json_encode($gallery);
+    exit;
+}
+
+if ($uri === '/api/gallery' && $method === 'POST') {
+    require_once __DIR__ . '/../config/storage.php';
+
+    $title = trim($_POST['title'] ?? '');
+    $category = trim($_POST['category'] ?? 'Celebration Cakes');
+    $isFeatured = isset($_POST['is_featured']) && ($_POST['is_featured'] === '1' || $_POST['is_featured'] === 'true' || $_POST['is_featured'] === true) ? 1 : 0;
+    $imageUrl = trim($_POST['image'] ?? '');
+
+    // Check for JSON body if POST body is raw json
+    if (empty($title) && empty($_FILES)) {
+        $rawInput = json_decode(file_get_contents('php://input'), true);
+        if ($rawInput) {
+            $title = trim($rawInput['title'] ?? '');
+            $category = trim($rawInput['category'] ?? 'Celebration Cakes');
+            $isFeatured = !empty($rawInput['is_featured']) ? 1 : 0;
+            $imageUrl = trim($rawInput['image'] ?? '');
+        }
+    }
+
+    // Handle uploaded file if present
+    $file = $_FILES['image_file'] ?? $_FILES['image'] ?? null;
+    if ($file && !empty($file['tmp_name'])) {
+        $uploadRes = uploadFileToStorage($file);
+        if ($uploadRes['success']) {
+            $imageUrl = $uploadRes['url'];
+        } else {
+            http_response_code(400);
+            echo json_encode(["error" => "Image upload failed: " . ($uploadRes['error'] ?? 'Unknown error')]);
+            exit;
+        }
+    }
+
+    if (empty($title) || empty($imageUrl)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Title and Image are required."]);
+        exit;
+    }
+
+    $newId = time();
+    $createdAt = date('Y-m-d H:i:s');
+
+    if (isset($pdo)) {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO gallery (title, category, image, is_featured, created_at) VALUES (?, ?, ?, ?, NOW())");
+            $stmt->execute([$title, $category, $imageUrl, $isFeatured]);
+            $newId = (int)$pdo->lastInsertId();
+        } catch (\Exception $e) {
+            // DB fallback handled via JSON
+        }
+    }
+
+    // Sync to JSON file
+    $jsonFile = __DIR__ . '/../data/gallery.json';
+    $jsonItems = [];
+    if (file_exists($jsonFile)) {
+        $jsonItems = json_decode(file_get_contents($jsonFile), true) ?? [];
+    }
+    $newItem = [
+        "id" => $newId,
+        "title" => $title,
+        "category" => $category,
+        "image" => $imageUrl,
+        "is_featured" => $isFeatured,
+        "created_at" => $createdAt
+    ];
+    array_unshift($jsonItems, $newItem);
+    file_put_contents($jsonFile, json_encode($jsonItems, JSON_PRETTY_PRINT));
+
+    http_response_code(201);
+    echo json_encode(["success" => true, "item" => $newItem]);
+    exit;
+}
+
+if ($uri === '/api/gallery/toggle_featured' && $method === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+    $id = (int)($input['id'] ?? $_GET['id'] ?? 0);
+
+    if (!$id) {
+        http_response_code(400);
+        echo json_encode(["error" => "Gallery item ID is required."]);
+        exit;
+    }
+
+    $newStatus = 0;
+    if (isset($pdo)) {
+        try {
+            $stmt = $pdo->prepare("UPDATE gallery SET is_featured = 1 - is_featured WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            $getStmt = $pdo->prepare("SELECT is_featured FROM gallery WHERE id = ?");
+            $getStmt->execute([$id]);
+            $newStatus = (int)$getStmt->fetchColumn();
+        } catch (\Exception $e) {
+            // Fall back to JSON
+        }
+    }
+
+    // Also update JSON file
+    $jsonFile = __DIR__ . '/../data/gallery.json';
+    if (file_exists($jsonFile)) {
+        $jsonItems = json_decode(file_get_contents($jsonFile), true) ?? [];
+        foreach ($jsonItems as &$item) {
+            if ($item['id'] == $id) {
+                $item['is_featured'] = 1 - ($item['is_featured'] ?? 0);
+                $newStatus = $item['is_featured'];
+                break;
+            }
+        }
+        file_put_contents($jsonFile, json_encode($jsonItems, JSON_PRETTY_PRINT));
+    }
+
+    echo json_encode(["success" => true, "id" => $id, "is_featured" => $newStatus]);
+    exit;
+}
+
+if ($uri === '/api/gallery' && $method === 'DELETE') {
+    $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+    $id = (int)($input['id'] ?? $_GET['id'] ?? 0);
+
+    if (!$id) {
+        http_response_code(400);
+        echo json_encode(["error" => "Gallery item ID is required."]);
+        exit;
+    }
+
+    if (isset($pdo)) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM gallery WHERE id = ?");
+            $stmt->execute([$id]);
+        } catch (\Exception $e) {
+            // Fall back to JSON
+        }
+    }
+
+    $jsonFile = __DIR__ . '/../data/gallery.json';
+    if (file_exists($jsonFile)) {
+        $jsonItems = json_decode(file_get_contents($jsonFile), true) ?? [];
+        $jsonItems = array_values(array_filter($jsonItems, fn($item) => $item['id'] != $id));
+        file_put_contents($jsonFile, json_encode($jsonItems, JSON_PRETTY_PRINT));
+    }
+
+    echo json_encode(["success" => true, "message" => "Gallery item deleted", "id" => $id]);
+    exit;
+}
+
+// 5. Image Upload Endpoint (Supabase / Local Storage)
 if ($uri === '/api/upload' && $method === 'POST') {
     $file = $_FILES['image'] ?? $_FILES['image_file'] ?? $_FILES['file'] ?? null;
     if ($file) {

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -59,6 +59,34 @@ export default function Checkout() {
   const [address, setAddress] = useState("")
   const [verificationState, setVerificationState] = useState<"idle" | "verifying" | "valid" | "invalid">("idle")
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [isAcceptingOrders, setIsAcceptingOrders] = useState(true)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const endpoints = [
+        "http://localhost:8000/api/settings",
+        "http://127.0.0.1:8000/api/settings",
+        "/api/settings",
+      ]
+
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint)
+          if (res.ok) {
+            const data = await res.json()
+            if (data.accepting_orders !== undefined) {
+              setIsAcceptingOrders(String(data.accepting_orders) === "1")
+            }
+            return
+          }
+        } catch {
+          // Continue fallback
+        }
+      }
+    }
+
+    fetchSettings()
+  }, [])
 
   // Enforce 3 days advance notice for orders
   const minDate = new Date()
@@ -236,6 +264,13 @@ export default function Checkout() {
         </h1>
         <div className="mx-auto mt-4 h-1.5 w-16 bg-primary rounded-full"></div>
       </div>
+
+      {!isAcceptingOrders && (
+        <div className="mb-8 mx-auto max-w-3xl rounded-2xl bg-amber-50 border-2 border-amber-300 p-4 text-xs font-bold text-amber-900 flex items-center justify-center gap-2 shadow-xs text-center">
+          <Info className="h-5 w-5 text-amber-600 shrink-0" />
+          <span>Notice: Store is temporarily not accepting new orders online. Please call us directly for urgent inquiries.</span>
+        </div>
+      )}
 
       {isRedirecting ? (
         /* Redirect Overlay state */

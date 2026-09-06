@@ -537,6 +537,28 @@ $avgPrice = $totalProducts > 0 ? round($totalPrice / $totalProducts, 2) : 0;
         .empty-icon {
             margin-bottom: 12px;
             color: var(--text-muted);
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: #f1f5f9;
+            color: var(--primary);
         }
     </style>
 </head>
@@ -554,18 +576,33 @@ $avgPrice = $totalProducts > 0 ? round($totalPrice / $totalProducts, 2) : 0;
             </div>
         </div>
 
+        <div class="nav-links">
+            <a href="admin_dashboard.php" class="nav-link">
+                <i data-lucide="home" style="width:16px; height:16px;"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="admin_products.php" class="nav-link active">
+                <i data-lucide="package" style="width:16px; height:16px;"></i>
+                <span>Products Catalog</span>
+            </a>
+            <a href="admin_gallery.php" class="nav-link">
+                <i data-lucide="camera" style="width:16px; height:16px;"></i>
+                <span>Creations Gallery</span>
+            </a>
+            <a href="admin_assets.php" class="nav-link">
+                <i data-lucide="image" style="width:16px; height:16px;"></i>
+                <span>Assets & Status</span>
+            </a>
+        </div>
+
         <div class="nav-actions">
-            <div class="status-badge">
-                <span class="status-dot"></span>
-                <span>MariaDB / Supabase Ready</span>
-            </div>
             <a href="admin_product_add.php" class="btn btn-primary">
                 <i data-lucide="plus" style="width:16px; height:16px;"></i>
                 <span>Add Product</span>
             </a>
             <a href="admin_login.php?action=logout" class="btn btn-outline btn-sm">
                 <i data-lucide="log-out" style="width:16px; height:16px;"></i>
-                <span>Logout (<?= htmlspecialchars($_SESSION['admin_id'] ?? 'admin') ?>)</span>
+                <span>Logout</span>
             </a>
         </div>
     </nav>

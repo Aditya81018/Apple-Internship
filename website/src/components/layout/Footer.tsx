@@ -33,15 +33,14 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Operational Hours */}
+          {/* Quick Navigation Links */}
           <div className="flex flex-col gap-3">
-            <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-text-primary">Operational Hours</h4>
-            <ul className="flex flex-col gap-1 font-sans text-sm">
-              <li>Monday - Sunday</li>
-              <li className="text-text-primary font-medium">10:00 AM - 8:00 PM</li>
-              <li className="mt-2 text-xs text-muted-foreground">
-                Kolkata, West Bengal, India
-              </li>
+            <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-text-primary">Navigation</h4>
+            <ul className="flex flex-col gap-2 font-sans text-sm">
+              <li><a href="/" className="hover:text-primary transition-colors">Home</a></li>
+              <li><a href="/catalog" className="hover:text-primary transition-colors">Menu Catalog</a></li>
+              <li><a href="/gallery" className="hover:text-primary transition-colors">Creations Gallery</a></li>
+              <li><a href="/custom" className="hover:text-primary transition-colors">Custom Order</a></li>
             </ul>
           </div>
         </div>

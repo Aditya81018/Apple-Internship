@@ -1,9 +1,43 @@
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import CatalogGrid from "@/components/catalog/CatalogGrid"
 import { Sparkles, Leaf, Clock, Award, Truck, Star, ChevronRight, Palette } from "lucide-react"
 
 export default function Home() {
+  const [heroImg, setHeroImg] = useState("https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=800&q=80")
+  const [customCakeImg, setCustomCakeImg] = useState("https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&w=600&q=80")
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const endpoints = [
+        "http://localhost:8000/api/settings",
+        "http://127.0.0.1:8000/api/settings",
+        "/api/settings",
+      ]
+
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint)
+          if (res.ok) {
+            const data = await res.json()
+            if (data.hero_image_url && data.hero_image_url.trim() !== "") {
+              setHeroImg(data.hero_image_url)
+            }
+            if (data.custom_cake_teaser_image_url && data.custom_cake_teaser_image_url.trim() !== "") {
+              setCustomCakeImg(data.custom_cake_teaser_image_url)
+            }
+            return
+          }
+        } catch {
+          // Continue fallback
+        }
+      }
+    }
+
+    fetchSettings()
+  }, [])
+
   const handleFeaturedScroll = () => {
     const featuredSection = document.getElementById("featured-cakes")
     if (featuredSection) {
@@ -64,7 +98,7 @@ export default function Home() {
 
               <div className="relative aspect-[4/5] w-full max-w-[340px] md:max-w-[380px] overflow-hidden rounded-[36px] border-4 border-white shadow-xl hover:rotate-1 transition-transform duration-500 bg-white">
                 <img
-                  src="https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=800&q=80"
+                  src={heroImg}
                   alt="Signature Eggless Cake"
                   className="h-full w-full object-cover"
                 />
@@ -184,20 +218,31 @@ export default function Home() {
               <p className="font-sans text-sm md:text-base font-semibold text-white/90 max-w-xl mb-8 leading-relaxed">
                 Upload your reference photos, select your base flavor, and describe your custom theme. Our master bakers will bring your dream cake to life!
               </p>
-              <Link to="/custom">
-                <Button
-                  size="lg"
-                  className="bg-white text-primary hover:bg-white/90 text-sm font-extrabold px-8 py-6 rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95"
-                >
-                  Start Custom Order Builder
-                </Button>
-              </Link>
+              <div className="flex flex-wrap items-center gap-4">
+                <Link to="/custom">
+                  <Button
+                    size="lg"
+                    className="bg-white text-primary hover:bg-white/90 text-sm font-extrabold px-8 py-6 rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95"
+                  >
+                    Start Custom Order Builder
+                  </Button>
+                </Link>
+                <Link to="/gallery">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-2 border-white/60 bg-white/10 text-white hover:bg-white hover:text-primary text-sm font-extrabold px-8 py-6 rounded-2xl transition-all backdrop-blur-xs hover:scale-105 active:scale-95"
+                  >
+                    Explore Creations Gallery
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             <div className="lg:col-span-4 flex justify-center">
               <div className="relative aspect-square w-full max-w-[280px] rounded-3xl overflow-hidden border-4 border-white/30 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-300">
                 <img
-                  src="https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&w=600&q=80"
+                  src={customCakeImg}
                   alt="Custom Cake Design Preview"
                   className="h-full w-full object-cover"
                 />

@@ -38,8 +38,20 @@ if ($uri === '/login' || $uri === '/admin/login') {
     require __DIR__ . '/admin_login.php';
     exit;
 }
-if ($uri === '/admin' || $uri === '/admin/') {
+if ($uri === '/admin/products') {
     require __DIR__ . '/admin_products.php';
+    exit;
+}
+if ($uri === '/admin/assets') {
+    require __DIR__ . '/admin_assets.php';
+    exit;
+}
+if ($uri === '/admin/gallery') {
+    require __DIR__ . '/admin_gallery.php';
+    exit;
+}
+if ($uri === '/admin' || $uri === '/admin/') {
+    require __DIR__ . '/admin_dashboard.php';
     exit;
 }
 
