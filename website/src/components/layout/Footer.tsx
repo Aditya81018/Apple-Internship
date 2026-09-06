@@ -2,7 +2,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="w-full border-t border-border bg-[#123456] py-12 text-text-secondary">
+    <footer className="w-full border-t border-border bg-card py-12 text-text-secondary">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Brand and Policy */}
@@ -26,22 +26,21 @@ export default function Footer() {
                 <a href="tel:+919432365368" className="hover:text-primary transition-colors">+91 94323 65368</a>
               </li>
               <li>
-                <span className="font-medium text-text-primary font-sans text-xs block mt-1 text-white">
+                <span className="font-medium text-text-primary font-sans text-xs block mt-1 text-muted-foreground">
                   * Please place custom orders at least 3 days in advance.
                 </span>
               </li>
             </ul>
           </div>
 
-          {/* Operational Hours */}
+          {/* Quick Navigation Links */}
           <div className="flex flex-col gap-3">
-            <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-text-primary">Operational Hours</h4>
-            <ul className="flex flex-col gap-1 font-sans text-sm">
-              <li>Monday - Sunday</li>
-              <li className="text-text-primary font-medium">10:00 AM - 8:00 PM</li>
-              <li className="mt-2 text-xs text-white">
-                Kolkata, West Bengal, India
-              </li>
+            <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-text-primary">Navigation</h4>
+            <ul className="flex flex-col gap-2 font-sans text-sm">
+              <li><a href="/" className="hover:text-primary transition-colors">Home</a></li>
+              <li><a href="/catalog" className="hover:text-primary transition-colors">Menu Catalog</a></li>
+              <li><a href="/gallery" className="hover:text-primary transition-colors">Creations Gallery</a></li>
+              <li><a href="/custom" className="hover:text-primary transition-colors">Custom Order</a></li>
             </ul>
           </div>
         </div>

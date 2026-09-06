@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -22,6 +22,7 @@ import {
 // Form validation schema
 const checkoutSchema = z.object({
   name: z.string().min(1, { message: "Please enter your name" }),
+  phone: z.string().optional(),
   notes: z.string().optional(),
   fulfillment: z.enum(["pickup", "delivery"]),
   address: z.string().optional(),
@@ -59,6 +60,34 @@ export default function Checkout() {
   const [address, setAddress] = useState("")
   const [verificationState, setVerificationState] = useState<"idle" | "verifying" | "valid" | "invalid">("idle")
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [isAcceptingOrders, setIsAcceptingOrders] = useState(true)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const endpoints = [
+        "http://localhost:8000/api/settings",
+        "http://127.0.0.1:8000/api/settings",
+        "/api/settings",
+      ]
+
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint)
+          if (res.ok) {
+            const data = await res.json()
+            if (data.accepting_orders !== undefined) {
+              setIsAcceptingOrders(String(data.accepting_orders) === "1")
+            }
+            return
+          }
+        } catch {
+          // Continue fallback
+        }
+      }
+    }
+
+    fetchSettings()
+  }, [])
 
   // Enforce 3 days advance notice for orders
   const minDate = new Date()
@@ -190,6 +219,47 @@ export default function Checkout() {
       address: data.fulfillment === "delivery" ? address : "",
     }
 
+    // Compute total order amount
+    const totalAmount = updatedCart.reduce(
+      (sum, item) => sum + (item.price || 0) * item.quantity,
+      0
+    )
+
+    // Record order in MariaDB database via REST API
+    try {
+      await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: {
+            name: data.name,
+            phone: data.phone || "",
+          },
+          fulfillment: {
+            type: data.fulfillment,
+            date: data.date,
+            time: data.time,
+            address: data.fulfillment === "delivery" ? address : "",
+          },
+          customization: {
+            special_notes: data.notes || "",
+          },
+          total_amount: totalAmount,
+          items: updatedCart.map((item) => ({
+            id: item.productId || item.id,
+            name: item.name,
+            size: item.size || "Standard",
+            quantity: item.quantity,
+            price: item.price || 0,
+            isCustom: item.isCustom || false,
+            customDetails: item.customDetails || null,
+          })),
+        }),
+      })
+    } catch (err) {
+      console.error("Order database logging error:", err)
+    }
+
     // Generate payload and redirect with uploaded URLs
     const url = generateWhatsAppURL(updatedCart, checkoutData)
     
@@ -236,6 +306,13 @@ export default function Checkout() {
         </h1>
         <div className="mx-auto mt-4 h-1.5 w-16 bg-primary rounded-full"></div>
       </div>
+
+      {!isAcceptingOrders && (
+        <div className="mb-8 mx-auto max-w-3xl rounded-2xl bg-amber-50 border-2 border-amber-300 p-4 text-xs font-bold text-amber-900 flex items-center justify-center gap-2 shadow-xs text-center">
+          <Info className="h-5 w-5 text-amber-600 shrink-0" />
+          <span>Notice: Store is temporarily not accepting new orders online. Please call us directly for urgent inquiries.</span>
+        </div>
+      )}
 
       {isRedirecting ? (
         /* Redirect Overlay state */
@@ -335,7 +412,7 @@ export default function Checkout() {
                 {fulfillmentType === "pickup" ? (
                   /* Store Pickup Info */
                   <div className="rounded-2xl bg-accent/20 border border-border p-5 text-xs font-sans font-semibold text-text-secondary flex flex-col gap-2 leading-relaxed">
-                    <span className="font-bold text-text-primary text-sm block mb-1">🏪 Shop Pickup Address</span>
+                    <span className="font-bold text-text-primary text-sm block mb-1">Shop Pickup Address</span>
                     <p>Raj Confections, Kolkata, West Bengal, India</p>
                     <p>Operational Hours: <strong className="text-text-primary">10:00 AM - 8:00 PM</strong> (Mon - Sun)</p>
                     <p>Contact No: <strong className="text-text-primary">+91 94774 89551</strong></p>
@@ -448,7 +525,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="text-[11px] font-sans font-semibold text-text-secondary leading-normal mt-1 bg-accent/20 rounded-xl p-3 border border-border">
-                  ℹ Orders must be placed at least <strong className="text-text-primary">3 days prior</strong> to allow for hygienic baking and preparation.
+                  Orders must be placed at least <strong className="text-text-primary">3 days prior</strong> to allow for hygienic baking and preparation.
                 </div>
               </div>
 
@@ -522,7 +599,7 @@ export default function Checkout() {
             {/* Quote details warning */}
             {cart.some((item) => item.isCustom) && (
               <div className="text-[11px] font-sans font-semibold text-text-secondary leading-normal bg-accent/20 rounded-xl p-3 border border-border/80">
-                ⭐ *Note:* Your cart contains a custom cake request. The total price above excludes this cake, which will be manually priced and added to your total in the WhatsApp thread.
+                *Note:* Your cart contains a custom cake request. The total price above excludes this cake, which will be manually priced and added to your total in the WhatsApp thread.
               </div>
             )}
           </div>

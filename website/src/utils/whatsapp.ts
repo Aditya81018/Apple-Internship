@@ -46,7 +46,7 @@ export function generateWhatsAppURL(cart: CartItem[], formData: CheckoutFormData
 
   // 4. Construct the WhatsApp Message
   const message = [
-    "🎂 *NEW ORDER REQUEST - RAJ CONFECTIONS* 🎂",
+    "*NEW ORDER REQUEST - RAJ CONFECTIONS*",
     "",
     "*Items:*",
     itemsText,

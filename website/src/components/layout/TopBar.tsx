@@ -1,46 +1,54 @@
-import { useLocation } from "react-router-dom"
-import { ShoppingBag } from "lucide-react"
-import { useCartStore } from "@/store/useCartStore"
+import { useState, useEffect } from "react"
 
 export default function TopBar() {
-  const location = useLocation()
-  const isHome = location.pathname === "/"
+  const [topbarText, setTopbarText] = useState("100% EGGLESS | GLUTEN-FREE | LACTOSE-FREE CREAMS")
+  const [isAcceptingOrders, setIsAcceptingOrders] = useState(true)
 
-  const { cart, toggleDrawer } = useCartStore()
-  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0)
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const endpoints = [
+        "http://localhost:8000/api/settings",
+        "http://127.0.0.1:8000/api/settings",
+        "/api/settings",
+      ]
 
-  const handleCartClick = () => {
-    toggleDrawer(true)
-  }
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint)
+          if (res.ok) {
+            const data = await res.json()
+            if (data.topbar_text) {
+              setTopbarText(data.topbar_text)
+            }
+            if (data.accepting_orders !== undefined) {
+              setIsAcceptingOrders(String(data.accepting_orders) === "1")
+            }
+            return
+          }
+        } catch {
+          // Continue fallback
+        }
+      }
+    }
+
+    fetchSettings()
+  }, [])
 
   return (
-    <div
-      className={`z-50 w-full py-2.5 px-4 flex items-center justify-center text-xs font-bold tracking-widest ${isHome
-          ? "fixed top-0 left-0 bg-white/20 backdrop-blur-md text-white border-b border-white/10"
-          : "sticky top-0 bg-[#FFDF33] text-primary shadow-xs"
-        }`}
-    >
-      <span className="text-center w-full max-w-[70%] sm:max-w-none">
-        100% EGGLESS | GLUTEN-FREE | LACTOSE-FREE CREAMS
-      </span>
+    <div className="sticky top-0 z-50 w-full bg-accent px-4 py-2 text-center text-xs font-bold tracking-wider text-primary shadow-xs flex flex-wrap items-center justify-center gap-3">
+      {/* Live Order Acceptance Status Pill */}
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-0.5 text-[10px] font-extrabold uppercase shadow-2xs">
+        <span
+          className={`h-2 w-2 rounded-full ${
+            isAcceptingOrders ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+          }`}
+        />
+        <span className={isAcceptingOrders ? "text-emerald-700" : "text-amber-700"}>
+          {isAcceptingOrders ? "ACCEPTING ORDERS" : "ORDERS PAUSED"}
+        </span>
+      </div>
 
-      {isHome && (
-        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-          <button
-            onClick={handleCartClick}
-            className="relative flex items-center justify-center rounded-full p-2 bg-white/20 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-white/30 active:scale-95 shadow-sm"
-            aria-label="Open cart"
-          >
-            <ShoppingBag className="h-5 w-5" />
-
-            {cartItemCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-white text-black text-[9px] sm:text-[10px] font-bold shadow-sm animate-bounce">
-                {cartItemCount}
-              </span>
-            )}
-          </button>
-        </div>
-      )}
+      <span className="truncate">{topbarText}</span>
     </div>
   )
 }

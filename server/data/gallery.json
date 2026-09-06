@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "title": "Inspirational Mango Glaze",
+    "category": "Celebration Cakes",
+    "image": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=800&q=80",
+    "is_featured": 1,
+    "created_at": "2026-09-06 18:00:00"
+  },
+  {
+    "id": 2,
+    "title": "Berry Vanilla Cupcake Tower",
+    "category": "Pastry & Cupcakes",
+    "image": "https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=800&q=80",
+    "is_featured": 1,
+    "created_at": "2026-09-06 18:00:00"
+  },
+  {
+    "id": 3,
+    "title": "Dark Fudgy Brownie Stack",
+    "category": "Pastry & Cupcakes",
+    "image": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80",
+    "is_featured": 1,
+    "created_at": "2026-09-06 18:00:00"
+  },
+  {
+    "id": 4,
+    "title": "Strawberry Delight Custom Cake",
+    "category": "Celebration Cakes",
+    "image": "https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&w=800&q=80",
+    "is_featured": 1,
+    "created_at": "2026-09-06 18:00:00"
+  },
+  {
+    "id": 5,
+    "title": "Three-Tier Floral Wedding Grace",
+    "category": "Wedding & Tier",
+    "image": "https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=800&q=80",
+    "is_featured": 0,
+    "created_at": "2026-09-06 18:00:00"
+  },
+  {
+    "id": 6,
+    "title": "Pistachio Saffron Gold Cake",
+    "category": "Celebration Cakes",
+    "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
+    "is_featured": 0,
+    "created_at": "2026-09-06 18:00:00"
+  }
+]
