@@ -12,16 +12,6 @@ export default function Navbar() {
     toggleDrawer(true)
   }
 
-  const handleStandardCakesClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (location.pathname === "/") {
-      e.preventDefault()
-      const catalogSection = document.getElementById("catalog")
-      if (catalogSection) {
-        catalogSection.scrollIntoView({ behavior: "smooth" })
-      }
-    }
-  }
-
   return (
     <header className="w-full bg-transparent">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
@@ -35,22 +25,37 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Center Links */}
-        <nav className="hidden items-center gap-10 md:flex">
+        {/* Center Navigation Links */}
+        <nav className="hidden items-center gap-8 md:flex">
           <Link
-            to="/#catalog"
-            onClick={handleStandardCakesClick}
-            className="relative py-1.5 font-sans text-sm font-bold text-text-primary transition-all hover:text-primary"
+            to="/"
+            className={`relative py-1.5 font-sans text-sm font-bold transition-all hover:text-primary ${
+              location.pathname === "/" ? "text-primary" : "text-text-primary"
+            }`}
           >
-            Standard Cakes
-            {(location.hash === "#catalog" || (location.pathname === "/" && location.hash === "")) && (
+            Home
+            {location.pathname === "/" && (
               <span className="absolute bottom-0 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary" />
             )}
           </Link>
+
+          <Link
+            to="/catalog"
+            className={`relative py-1.5 font-sans text-sm font-bold transition-all hover:text-primary ${
+              location.pathname === "/catalog" ? "text-primary" : "text-text-primary"
+            }`}
+          >
+            Menu Catalog
+            {location.pathname === "/catalog" && (
+              <span className="absolute bottom-0 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary" />
+            )}
+          </Link>
+
           <Link
             to="/custom"
-            className={`relative py-1.5 font-sans text-sm font-bold transition-all hover:text-primary ${location.pathname === "/custom" ? "text-primary" : "text-text-primary"
-              }`}
+            className={`relative py-1.5 font-sans text-sm font-bold transition-all hover:text-primary ${
+              location.pathname === "/custom" ? "text-primary" : "text-text-primary"
+            }`}
           >
             Custom Order
             {location.pathname === "/custom" && (
@@ -62,7 +67,7 @@ export default function Navbar() {
         {/* Cart Trigger */}
         <button
           onClick={handleCartClick}
-          className="relative rounded-full bg-accent/60 p-2.5 text-primary transition-all hover:scale-105 hover:bg-accent active:scale-95 shadow-2xs"
+          className="relative rounded-full bg-accent/60 p-2.5 text-primary transition-all hover:scale-105 hover:bg-accent active:scale-95 shadow-2xs cursor-pointer"
           aria-label="Open cart"
         >
           <ShoppingBag className="h-5.5 w-5.5" />

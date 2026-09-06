@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price       = trim($_POST['price'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $imageUrl    = trim($_POST['image'] ?? '');
+    $isFeatured  = isset($_POST['is_featured']) ? 1 : 0;
 
     // Handle File Upload to Supabase Storage
     if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
@@ -34,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception("Database not connected.");
                 }
 
-                $stmt = $pdo->prepare("INSERT INTO products (id, name, category, price, image) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([$id, $name, $category, $price, $imageUrl]);
+                $stmt = $pdo->prepare("INSERT INTO products (id, name, category, price, image, is_featured) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$id, $name, $category, $price, $imageUrl, $isFeatured]);
 
                 header("Location: admin_products.php?msg=added");
                 exit;
@@ -266,6 +267,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label for="price">Price (₹) *</label>
             <input type="number" step="0.01" id="price" name="price" placeholder="450.00" required value="<?= htmlspecialchars($_POST['price'] ?? '') ?>">
+        </div>
+
+        <div class="form-group" style="display:flex; align-items:center; gap:10px; padding: 12px 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px;">
+            <input type="checkbox" id="is_featured" name="is_featured" value="1" style="width:18px; height:18px; cursor:pointer;" <?= !empty($_POST['is_featured']) ? 'checked' : '' ?>>
+            <label for="is_featured" style="margin-bottom:0; cursor:pointer;">Mark as Featured Cake (Display prominently on Landing Page)</label>
         </div>
 
         <div class="form-group">

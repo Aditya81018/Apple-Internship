@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Sparkles } from "lucide-react"
+import { Sparkles, Star } from "lucide-react"
 
 export interface Product {
   id: string
@@ -9,6 +9,7 @@ export interface Product {
   price: number
   image: string
   category: string
+  is_featured?: boolean
   sizes?: string[]
   prices?: Record<string, number>
 }
@@ -56,6 +57,14 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <Sparkles className="h-3 w-3 shrink-0" />
           100% EGGLESS
         </div>
+
+        {/* Featured Cake Badge */}
+        {product.is_featured && (
+          <div className="absolute top-4 right-4 inline-flex items-center gap-1 rounded-full bg-primary/95 px-3 py-1 text-[9px] font-black tracking-widest text-white shadow-sm uppercase">
+            <Star className="h-3 w-3 shrink-0 fill-white" />
+            FEATURED
+          </div>
+        )}
       </div>
 
       {/* 2. Content Area */}

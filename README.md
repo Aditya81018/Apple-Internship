@@ -1,4 +1,4 @@
-# Raj Confections 🎂
+# Raj Confections
 
 A modern e-commerce catalog, custom cake builder, and order management platform built with a React + Vite frontend and a lightweight PHP backend server connected to MariaDB / MySQL (`raj-confections-db`).
 

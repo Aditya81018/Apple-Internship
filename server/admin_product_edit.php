@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price       = trim($_POST['price'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $imageUrl    = trim($_POST['image'] ?? '');
+    $isFeatured  = isset($_POST['is_featured']) ? 1 : 0;
 
     // Handle File Upload to Supabase Storage
     if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
@@ -36,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Name and Price are required fields.";
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE products SET name = ?, category = ?, price = ?, image = ? WHERE id = ?");
-                $stmt->execute([$name, $category, $price, $imageUrl, $id]);
+                $stmt = $pdo->prepare("UPDATE products SET name = ?, category = ?, price = ?, image = ?, is_featured = ? WHERE id = ?");
+                $stmt->execute([$name, $category, $price, $imageUrl, $isFeatured, $id]);
 
                 header("Location: admin_products.php?msg=updated");
                 exit;
@@ -291,6 +292,11 @@ if (!$product) {
         <div class="form-group">
             <label for="price">Price (₹) *</label>
             <input type="number" step="0.01" id="price" name="price" value="<?= htmlspecialchars($product['price']) ?>" required>
+        </div>
+
+        <div class="form-group" style="display:flex; align-items:center; gap:10px; padding: 12px 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px;">
+            <input type="checkbox" id="is_featured" name="is_featured" value="1" style="width:18px; height:18px; cursor:pointer;" <?= !empty($product['is_featured']) ? 'checked' : '' ?>>
+            <label for="is_featured" style="margin-bottom:0; cursor:pointer;">Mark as Featured Cake (Display prominently on Landing Page)</label>
         </div>
 
         <div class="form-group">

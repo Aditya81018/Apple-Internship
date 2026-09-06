@@ -14,6 +14,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && !empty($_GET['id']
     exit;
 }
 
+// Handle toggle featured action
+if (isset($_GET['action']) && $_GET['action'] === 'toggle_featured' && !empty($_GET['id'])) {
+    $stmt = $pdo->prepare("UPDATE products SET is_featured = CASE WHEN is_featured = 1 THEN 0 ELSE 1 END WHERE id = ?");
+    $stmt->execute([$_GET['id']]);
+    header("Location: admin_products.php?msg=toggled");
+    exit;
+}
+
 $stmt = $pdo->query("SELECT * FROM products ORDER BY id ASC");
 $products = $stmt->fetchAll();
 
@@ -478,6 +486,28 @@ $avgPrice = $totalProducts > 0 ? round($totalPrice / $totalProducts, 2) : 0;
             color: #b45309;
         }
 
+        .badge-featured {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-standard {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .price-text {
             font-weight: 700;
             color: #059669;
@@ -553,6 +583,7 @@ $avgPrice = $totalProducts > 0 ? round($totalPrice / $totalProducts, 2) : 0;
                         if ($_GET['msg'] === 'added') echo "Product created successfully!";
                         if ($_GET['msg'] === 'updated') echo "Product updated successfully!";
                         if ($_GET['msg'] === 'deleted') echo "Product deleted successfully!";
+                        if ($_GET['msg'] === 'toggled') echo "Product featured status updated successfully!";
                         ?>
                     </span>
                 </div>
@@ -630,6 +661,7 @@ $avgPrice = $totalProducts > 0 ? round($totalPrice / $totalProducts, 2) : 0;
                         <tr>
                             <th>Product Info</th>
                             <th>Category</th>
+                            <th>Featured</th>
                             <th>Standard Weight</th>
                             <th>Price (₹)</th>
                             <th>Description</th>
@@ -669,6 +701,13 @@ $avgPrice = $totalProducts > 0 ? round($totalPrice / $totalProducts, 2) : 0;
                                     </td>
                                     <td>
                                         <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($p['category'] ?? 'Cake') ?></span>
+                                    </td>
+                                    <td>
+                                        <?php $isFeatured = !empty($p['is_featured']); ?>
+                                        <a href="admin_products.php?action=toggle_featured&id=<?= urlencode($p['id']) ?>" class="badge <?= $isFeatured ? 'badge-featured' : 'badge-standard' ?>" title="Click to toggle featured status">
+                                            <i data-lucide="<?= $isFeatured ? 'star' : 'star-off' ?>" style="width:12px; height:12px;"></i>
+                                            <span><?= $isFeatured ? 'Featured' : 'Standard' ?></span>
+                                        </a>
                                     </td>
                                     <td><?= htmlspecialchars($p['weight'] ?? '1 kg') ?></td>
                                     <td>

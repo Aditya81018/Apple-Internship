@@ -335,7 +335,7 @@ export default function Checkout() {
                 {fulfillmentType === "pickup" ? (
                   /* Store Pickup Info */
                   <div className="rounded-2xl bg-accent/20 border border-border p-5 text-xs font-sans font-semibold text-text-secondary flex flex-col gap-2 leading-relaxed">
-                    <span className="font-bold text-text-primary text-sm block mb-1">🏪 Shop Pickup Address</span>
+                    <span className="font-bold text-text-primary text-sm block mb-1">Shop Pickup Address</span>
                     <p>Raj Confections, Kolkata, West Bengal, India</p>
                     <p>Operational Hours: <strong className="text-text-primary">10:00 AM - 8:00 PM</strong> (Mon - Sun)</p>
                     <p>Contact No: <strong className="text-text-primary">+91 94774 89551</strong></p>
@@ -448,7 +448,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="text-[11px] font-sans font-semibold text-text-secondary leading-normal mt-1 bg-accent/20 rounded-xl p-3 border border-border">
-                  ℹ Orders must be placed at least <strong className="text-text-primary">3 days prior</strong> to allow for hygienic baking and preparation.
+                  Orders must be placed at least <strong className="text-text-primary">3 days prior</strong> to allow for hygienic baking and preparation.
                 </div>
               </div>
 
@@ -522,7 +522,7 @@ export default function Checkout() {
             {/* Quote details warning */}
             {cart.some((item) => item.isCustom) && (
               <div className="text-[11px] font-sans font-semibold text-text-secondary leading-normal bg-accent/20 rounded-xl p-3 border border-border/80">
-                ⭐ *Note:* Your cart contains a custom cake request. The total price above excludes this cake, which will be manually priced and added to your total in the WhatsApp thread.
+                *Note:* Your cart contains a custom cake request. The total price above excludes this cake, which will be manually priced and added to your total in the WhatsApp thread.
               </div>
             )}
           </div>

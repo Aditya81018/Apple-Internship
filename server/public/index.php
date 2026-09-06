@@ -94,7 +94,11 @@ if ($uri === '/api/health') {
 if ($uri === '/api/products' && $method === 'GET') {
     if (isset($pdo)) {
         $stmt = $pdo->query("SELECT * FROM products ORDER BY id ASC");
-        echo json_encode($stmt->fetchAll());
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($products as &$p) {
+            $p['is_featured'] = (bool)($p['is_featured'] ?? 0);
+        }
+        echo json_encode($products);
     } else {
         echo json_encode([]);
     }

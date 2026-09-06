@@ -5,6 +5,7 @@
     "price": 400,
     "image": "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
+    "is_featured": true,
     "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 400,
@@ -17,6 +18,7 @@
     "price": 450,
     "image": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
+    "is_featured": false,
     "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 450,
@@ -29,6 +31,7 @@
     "price": 550,
     "image": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
+    "is_featured": true,
     "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 550,
@@ -41,6 +44,7 @@
     "price": 550,
     "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
+    "is_featured": true,
     "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 550,
@@ -53,6 +57,7 @@
     "price": 600,
     "image": "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
+    "is_featured": true,
     "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 600,
@@ -65,6 +70,7 @@
     "price": 600,
     "image": "https://images.unsplash.com/photo-1519340333755-56e9c1d04579?auto=format&fit=crop&w=800&q=80",
     "category": "cake",
+    "is_featured": false,
     "sizes": ["1 lb", "2 lb"],
     "prices": {
       "1 lb": 600,
@@ -77,6 +83,7 @@
     "price": 50,
     "image": "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?auto=format&fit=crop&w=800&q=80",
     "category": "addon",
+    "is_featured": false,
     "sizes": [],
     "prices": {
       "default": 50
@@ -88,6 +95,7 @@
     "price": 80,
     "image": "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
     "category": "addon",
+    "is_featured": false,
     "sizes": [],
     "prices": {
       "default": 80
@@ -99,6 +107,7 @@
     "price": 30,
     "image": "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=800&q=80",
     "category": "addon",
+    "is_featured": false,
     "sizes": [],
     "prices": {
       "default": 30

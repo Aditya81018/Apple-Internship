@@ -21,10 +21,13 @@ CREATE TABLE IF NOT EXISTS `products` (
   `image` TEXT NULL,
   `sizes` JSON NULL,
   `prices` JSON NULL,
+  `is_featured` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `products` ADD COLUMN IF NOT EXISTS `is_featured` TINYINT(1) NOT NULL DEFAULT 0;
 
 -- ----------------------------------------------------------------------------
 -- Table: orders
