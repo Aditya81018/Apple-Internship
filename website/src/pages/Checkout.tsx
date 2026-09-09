@@ -226,38 +226,51 @@ export default function Checkout() {
     )
 
     // Record order in MariaDB database via REST API
-    try {
-      await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer: {
-            name: data.name,
-            phone: data.phone || "",
-          },
-          fulfillment: {
-            type: data.fulfillment,
-            date: data.date,
-            time: data.time,
-            address: data.fulfillment === "delivery" ? address : "",
-          },
-          customization: {
-            special_notes: data.notes || "",
-          },
-          total_amount: totalAmount,
-          items: updatedCart.map((item) => ({
-            id: item.productId || item.id,
-            name: item.name,
-            size: item.size || "Standard",
-            quantity: item.quantity,
-            price: item.price || 0,
-            isCustom: item.isCustom || false,
-            customDetails: item.customDetails || null,
-          })),
-        }),
-      })
-    } catch (err) {
-      console.error("Order database logging error:", err)
+    const orderPayload = JSON.stringify({
+      customer: {
+        name: data.name,
+        phone: data.phone || "",
+      },
+      fulfillment: {
+        type: data.fulfillment,
+        date: data.date,
+        time: data.time,
+        address: data.fulfillment === "delivery" ? address : "",
+      },
+      customization: {
+        special_notes: data.notes || "",
+      },
+      total_amount: totalAmount,
+      items: updatedCart.map((item) => ({
+        id: item.productId || item.id,
+        name: item.name,
+        size: item.size || "Standard",
+        quantity: item.quantity,
+        price: item.price || 0,
+        isCustom: item.isCustom || false,
+        customDetails: item.customDetails || null,
+      })),
+    })
+
+    const orderEndpoints = [
+      "http://localhost:8000/api/orders",
+      "http://127.0.0.1:8000/api/orders",
+      "/api/orders",
+    ]
+
+    for (const endpoint of orderEndpoints) {
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: orderPayload,
+        })
+        if (res.ok) {
+          break
+        }
+      } catch (err) {
+        console.error("Order logging attempt error for endpoint:", endpoint, err)
+      }
     }
 
     // Generate payload and redirect with uploaded URLs

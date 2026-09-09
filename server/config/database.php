@@ -35,20 +35,43 @@ class Database {
             $user = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? 'root');
             $pass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : ($_ENV['DB_PASS'] ?? '');
             $charset = 'utf8mb4';
-
-            $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
             $options = [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ];
 
-            try {
-                self::$pdo = new PDO($dsn, $user, $pass, $options);
-            } catch (\PDOException $e) {
-                error_log("Database Connection Failed: " . $e->getMessage());
-                return null;
+            $hostsToTry = array_unique([$host, 'localhost', '127.0.0.1']);
+            $lastException = null;
+
+            foreach ($hostsToTry as $h) {
+                try {
+                    $dsn = "mysql:host=$h;dbname=$db;charset=$charset";
+                    self::$pdo = new PDO($dsn, $user, $pass, $options);
+                    return self::$pdo;
+                } catch (\PDOException $e) {
+                    $lastException = $e;
+                }
             }
+
+            // Try unix sockets as final fallback
+            $socketsToTry = ['/var/run/mysqld/mysqld.sock', '/run/mysqld/mysqld.sock', '/tmp/mysql.sock'];
+            foreach ($socketsToTry as $sock) {
+                if (file_exists($sock)) {
+                    try {
+                        $dsn = "mysql:unix_socket=$sock;dbname=$db;charset=$charset";
+                        self::$pdo = new PDO($dsn, $user, $pass, $options);
+                        return self::$pdo;
+                    } catch (\PDOException $e) {
+                        $lastException = $e;
+                    }
+                }
+            }
+
+            if ($lastException) {
+                error_log("Database Connection Failed: " . $lastException->getMessage());
+            }
+            return null;
         }
         return self::$pdo;
     }

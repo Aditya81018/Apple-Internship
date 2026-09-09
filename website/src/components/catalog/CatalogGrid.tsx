@@ -141,10 +141,10 @@ export default function CatalogGrid({ featuredOnly = false, limit, hideHeader = 
   }
 
   return (
-    <section id="catalog" className="mx-auto max-w-7xl px-4 py-16 md:px-8">
+    <section id="catalog" className={`mx-auto max-w-7xl px-4 md:px-8 ${hideHeader ? "py-0" : "py-10 md:py-14"}`}>
       {/* Section Header */}
       {!hideHeader && (
-        <div className="mb-12 text-center">
+        <div className="mb-8 text-center">
           <div className="text-xs font-black tracking-widest text-primary uppercase mb-2">
             {featuredOnly ? "FEATURED CREATIONS" : "COMPLETE MENU CATALOG"}
           </div>
@@ -213,7 +213,7 @@ export default function CatalogGrid({ featuredOnly = false, limit, hideHeader = 
           No products found matching your selection.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {displayProducts.map((product) => (
             <ProductCard
               key={product.id}

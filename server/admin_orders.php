@@ -8,32 +8,51 @@ $error = '';
 // Fetch orders (DB with JSON fallback)
 function fetchAllOrders() {
     global $pdo;
-    $orders = [];
-
+    $dbOrders = [];
     if (isset($pdo) && $pdo) {
         try {
             $stmt = $pdo->query("SELECT * FROM orders ORDER BY id DESC");
-            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dbOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $itemStmt = $pdo->prepare("SELECT * FROM order_items WHERE order_id = ?");
-            foreach ($orders as &$ord) {
+            foreach ($dbOrders as &$ord) {
                 $itemStmt->execute([$ord['order_id']]);
                 $ord['items'] = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                 if (!empty($ord['raw_payload'])) {
                     $ord['payload'] = json_decode($ord['raw_payload'], true);
                 }
             }
-            return $orders;
         } catch (\Exception $e) {
-            // Fall back
+            $dbOrders = [];
         }
     }
 
     $jsonFile = __DIR__ . '/data/orders.json';
+    $jsonOrders = [];
     if (file_exists($jsonFile)) {
-        return json_decode(file_get_contents($jsonFile), true) ?? [];
+        $jsonOrders = json_decode(file_get_contents($jsonFile), true) ?? [];
     }
-    return [];
+
+    $allOrders = [];
+    $seenIds = [];
+
+    foreach ($dbOrders as $o) {
+        $oid = $o['order_id'] ?? '';
+        if ($oid && !isset($seenIds[$oid])) {
+            $seenIds[$oid] = true;
+            $allOrders[] = $o;
+        }
+    }
+
+    foreach ($jsonOrders as $o) {
+        $oid = $o['order_id'] ?? '';
+        if ($oid && !isset($seenIds[$oid])) {
+            $seenIds[$oid] = true;
+            $allOrders[] = $o;
+        }
+    }
+
+    return $allOrders;
 }
 
 // Handle Status Update

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import CatalogGrid from "@/components/catalog/CatalogGrid"
-import { Sparkles, Leaf, Clock, Award, Truck, Star, ChevronRight, Palette } from "lucide-react"
+import { Sparkles, Star, ChevronRight, Palette } from "lucide-react"
 
 export default function Home() {
   const [heroImg, setHeroImg] = useState("https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=800&q=80")
@@ -53,7 +53,7 @@ export default function Home() {
         <div className="absolute top-1/2 left-[-100px] h-[300px] w-[300px] -translate-y-1/2 rounded-full bg-secondary/10 blur-3xl -z-10" />
         <div className="absolute top-[-50px] right-[-50px] h-[250px] w-[250px] rounded-full bg-accent/30 blur-3xl -z-10" />
 
-        <div className="mx-auto max-w-7xl px-4 py-16 md:py-24 md:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-12 md:py-16 md:px-8">
           <div className="grid grid-cols-1 gap-12 items-center md:grid-cols-12">
 
             {/* Left Content Column */}
@@ -110,8 +110,8 @@ export default function Home() {
       </section>
 
       {/* 2. Featured Cakes Section (Shows ONLY Featured Cakes) */}
-      <section id="featured-cakes" className="mx-auto max-w-7xl px-4 py-20 md:px-8">
-        <div className="mb-12 text-center">
+      <section id="featured-cakes" className="mx-auto max-w-7xl px-4 py-10 md:py-12 md:px-8">
+        <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-1.5 text-xs font-black tracking-widest text-primary uppercase mb-2">
             <Star className="h-4 w-4 fill-primary text-primary" />
             OUR SPECIALTY CREATIONS
@@ -129,7 +129,7 @@ export default function Home() {
         <CatalogGrid featuredOnly={true} limit={6} hideHeader={true} />
 
         {/* Call-to-action button leading to the full Catalog Page */}
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <Link to="/catalog">
             <Button
               size="lg"
@@ -142,69 +142,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. Why Choose Us / Value Proposition Highlights */}
-      <section className="w-full bg-accent/20 py-20 border-y border-border/50">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="text-center mb-14">
-            <span className="text-xs font-black tracking-widest text-primary uppercase mb-2 block">
-              THE RAJ CONFECTIONS DIFFERENCE
-            </span>
-            <h2 className="font-heading text-3xl font-extrabold text-text-primary md:text-4xl">
-              Why Customers Love Our Bakes
-            </h2>
-            <div className="mx-auto mt-3 h-1 w-16 bg-primary rounded-full" />
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Feature 1 */}
-            <div className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border-2 border-border/60 shadow-2xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-              <div className="h-14 w-14 rounded-2xl bg-accent/80 text-primary flex items-center justify-center mb-5 shadow-xs">
-                <Leaf className="h-7 w-7" />
-              </div>
-              <h3 className="font-heading text-lg font-bold text-text-primary mb-2">100% Eggless Guaranteed</h3>
-              <p className="font-sans text-xs font-semibold text-text-secondary leading-relaxed">
-                Strictly pure vegetarian bakery with zero cross-contamination. Delicious taste without any eggs.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border-2 border-border/60 shadow-2xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-              <div className="h-14 w-14 rounded-2xl bg-accent/80 text-primary flex items-center justify-center mb-5 shadow-xs">
-                <Clock className="h-7 w-7" />
-              </div>
-              <h3 className="font-heading text-lg font-bold text-text-primary mb-2">Baked Fresh Daily</h3>
-              <p className="font-sans text-xs font-semibold text-text-secondary leading-relaxed">
-                We bake every cake fresh on the morning of your scheduled delivery for peak softness and flavor.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border-2 border-border/60 shadow-2xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-              <div className="h-14 w-14 rounded-2xl bg-accent/80 text-primary flex items-center justify-center mb-5 shadow-xs">
-                <Award className="h-7 w-7" />
-              </div>
-              <h3 className="font-heading text-lg font-bold text-text-primary mb-2">Premium Ingredients</h3>
-              <p className="font-sans text-xs font-semibold text-text-secondary leading-relaxed">
-                Crafted with organic cocoa, pure dairy cream, and real fruits with zero artificial preservatives.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border-2 border-border/60 shadow-2xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-              <div className="h-14 w-14 rounded-2xl bg-accent/80 text-primary flex items-center justify-center mb-5 shadow-xs">
-                <Truck className="h-7 w-7" />
-              </div>
-              <h3 className="font-heading text-lg font-bold text-text-primary mb-2">Express Doorstep Delivery</h3>
-              <p className="font-sans text-xs font-semibold text-text-secondary leading-relaxed">
-                Temperature-controlled delivery right to your door so your celebration cake arrives in perfect condition.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* 4. Custom Cake Teaser Section */}
-      <section className="mx-auto max-w-7xl px-4 py-20 md:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-10 md:py-12 md:px-8">
         <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-r from-primary via-primary/95 to-secondary p-8 md:p-14 text-white shadow-xl">
           <div className="grid grid-cols-1 gap-8 items-center lg:grid-cols-12">
             <div className="lg:col-span-8 flex flex-col items-start">
@@ -253,8 +192,8 @@ export default function Home() {
       </section>
 
       {/* 5. How It Works / 3-Step Ordering Process */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
-        <div className="text-center mb-14">
+      <section className="mx-auto max-w-7xl px-4 py-10 md:py-12 md:px-8">
+        <div className="text-center mb-8">
           <span className="text-xs font-black tracking-widest text-primary uppercase mb-2 block">
             EASY ORDERING
           </span>
@@ -298,9 +237,9 @@ export default function Home() {
       </section>
 
       {/* 6. Customer Reviews & Ratings */}
-      <section className="w-full bg-gradient-to-b from-transparent to-accent/20 py-20 border-t border-border/40">
+      <section className="w-full bg-gradient-to-b from-transparent to-accent/20 py-12 md:py-16 border-t border-border/40">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="text-center mb-14">
+          <div className="text-center mb-8">
             <div className="inline-flex items-center gap-1 text-amber-500 mb-2">
               <Star className="h-4 w-4 fill-amber-400" />
               <Star className="h-4 w-4 fill-amber-400" />

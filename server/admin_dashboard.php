@@ -108,41 +108,46 @@ if (isset($pdo) && $pdo) {
     $totalGalleryCount = count($gItems);
 }
 
-$totalOrdersCount = 0;
-$pendingOrdersCount = 0;
-$recentOrders = [];
-
-$jsonOrdersFile = __DIR__ . '/data/orders.json';
+$allDashboardOrders = [];
+$dbDashboardOrders = [];
 if (isset($pdo) && $pdo) {
     try {
-        $stmtO = $pdo->query("SELECT * FROM orders ORDER BY id DESC LIMIT 5");
-        $recentOrders = $stmtO->fetchAll(PDO::FETCH_ASSOC);
-
-        $stmtCount = $pdo->query("SELECT COUNT(*) FROM orders");
-        $totalOrdersCount = (int)$stmtCount->fetchColumn();
-
-        $stmtPending = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'PENDING_CONFIRMATION' OR status = 'PENDING'");
-        $pendingOrdersCount = (int)$stmtPending->fetchColumn();
+        $stmtO = $pdo->query("SELECT * FROM orders ORDER BY id DESC");
+        $dbDashboardOrders = $stmtO->fetchAll(PDO::FETCH_ASSOC);
     } catch (\Exception $e) {
-        if (file_exists($jsonOrdersFile)) {
-            $allO = json_decode(file_get_contents($jsonOrdersFile), true) ?? [];
-            $totalOrdersCount = count($allO);
-            $recentOrders = array_slice($allO, 0, 5);
-            foreach ($allO as $o) {
-                $st = strtoupper($o['status'] ?? '');
-                if ($st === 'PENDING_CONFIRMATION' || $st === 'PENDING') $pendingOrdersCount++;
-            }
-        }
-    }
-} else if (file_exists($jsonOrdersFile)) {
-    $allO = json_decode(file_get_contents($jsonOrdersFile), true) ?? [];
-    $totalOrdersCount = count($allO);
-    $recentOrders = array_slice($allO, 0, 5);
-    foreach ($allO as $o) {
-        $st = strtoupper($o['status'] ?? '');
-        if ($st === 'PENDING_CONFIRMATION' || $st === 'PENDING') $pendingOrdersCount++;
+        $dbDashboardOrders = [];
     }
 }
+
+$jsonOrdersFile = __DIR__ . '/data/orders.json';
+$jsonDashboardOrders = [];
+if (file_exists($jsonOrdersFile)) {
+    $jsonDashboardOrders = json_decode(file_get_contents($jsonOrdersFile), true) ?? [];
+}
+
+$seenDashIds = [];
+foreach ($dbDashboardOrders as $o) {
+    $oid = $o['order_id'] ?? '';
+    if ($oid && !isset($seenDashIds[$oid])) {
+        $seenDashIds[$oid] = true;
+        $allDashboardOrders[] = $o;
+    }
+}
+foreach ($jsonDashboardOrders as $o) {
+    $oid = $o['order_id'] ?? '';
+    if ($oid && !isset($seenDashIds[$oid])) {
+        $seenDashIds[$oid] = true;
+        $allDashboardOrders[] = $o;
+    }
+}
+
+$totalOrdersCount = count($allDashboardOrders);
+$pendingOrdersCount = 0;
+foreach ($allDashboardOrders as $o) {
+    $st = strtoupper($o['status'] ?? '');
+    if ($st === 'PENDING_CONFIRMATION' || $st === 'PENDING') $pendingOrdersCount++;
+}
+$recentOrders = array_slice($allDashboardOrders, 0, 5);
 
 $isAcceptingOrders = ($settings['accepting_orders'] ?? '1') === '1';
 ?>

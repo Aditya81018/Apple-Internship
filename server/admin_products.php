@@ -537,6 +537,8 @@ $avgPrice = $totalProducts > 0 ? round($totalPrice / $totalProducts, 2) : 0;
         .empty-icon {
             margin-bottom: 12px;
             color: var(--text-muted);
+        }
+
         .nav-links {
             display: flex;
             align-items: center;
